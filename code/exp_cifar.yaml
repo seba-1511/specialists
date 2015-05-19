@@ -1,11 +1,18 @@
 # Based on the Maxout Network for PyLearn2
+# To try:
+# - batch normalization
+# - 785 epochs
+# - momentum start and finish
+# - Weight decay with gdm
+# - schedule learning rate
 
 !obj:experiments.FitPredictErrorExperiment {
     dataset: &ds !obj:datasets.CIFAR100 {
         repo_path: '~/data',
-        sample_pct: 100
+        sample_pct: 100,
+        coarse: False,
     },
-
+    
   metrics: {
         train: [
             !obj:metrics.MisclassPercentage {}
@@ -29,7 +36,7 @@
   lrule: &gdm {
       type: gradient_descent_momentum,
       lr_params: {
-          learning_rate: 0.17,
+          learning_rate: 0.017,
           momentum_params: {
               type: constant,
               coef: 0.5,
@@ -39,8 +46,10 @@
   
   
   model: !obj:models.MLP {
-      num_epochs: 74,
+      num_epochs: 120,
       batch_size: &bs 128,
+      batch_norm: True,
+      serialized_path: '~/saved_models/specialists/exp_cifar.prm',
       layers: [
           &datalayer !obj:layers.DataLayer {
               name: d0,
@@ -52,7 +61,7 @@
                 name: layer1,
                 lrule_init: *gdm,
                 weight_init: *wt_init,
-                nofm: 96,
+                nofm: 128,
                 fshape: [8, 8],
                 activation: !obj:transforms.RectLin {},
                 pad: 4,
