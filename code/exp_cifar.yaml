@@ -73,7 +73,7 @@
                 weight_init: *wt_init,
                 nofm: 192,
                 fshape: [8, 8],
-                activation: !obj:transforms.RectLin{},
+                activation: !obj:transforms.RectLin {},
                 pad: 3,
             },
             !obj:layers.PoolingLayer {
@@ -88,7 +88,7 @@
                 weight_init: *wt_init,
                 nofm: 192,
                 fshape: [5, 5],
-                activation: !obj:transforms.RectLin{},
+                activation: !obj:transforms.RectLin {},
                 pad: 3,
             },
             !obj:layers.PoolingLayer {
