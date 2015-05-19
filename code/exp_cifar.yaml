@@ -31,7 +31,7 @@
       lr_params: {
           learning_rate: 0.17,
           momentum_params: {
-              type: nesterov,
+              type: constant,
               coef: 0.5,
             },
         },
