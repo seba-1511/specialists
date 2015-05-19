@@ -34,7 +34,7 @@ def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues):
     plt.xlabel('Predicted label')
 
 
-def create_model(nin):
+def create_model(nout):
     layers = [
         DataLayer(nofm=3, ofmshape=[32, 32], is_local=True),
         ConvLayer(nofm=64, fshape=[5, 5], activation=RectLin()),
@@ -43,7 +43,7 @@ def create_model(nin):
         PoolingLayer(op='max', fshape=[2, 2], stride=1),
         FCLayer(nout=2000, activation=RectLin()),
         FCLayer(nout=2000, activation=RectLin()),
-        FCLayer(nout=100, activation=Logistic()),
+        FCLayer(nout=nout, activation=Logistic()),
         CostLayer(cost=CrossEntropy()),
     ]
     model = MLP(num_epochs=300, batch_size=128, layers=layers)
@@ -51,9 +51,10 @@ def create_model(nin):
 
 
 def run():
-    model = create_model(nin=3072)
     backend = gen_backend(rng_seed=0, gpu='cudanet')
     dataset = CIFAR100(repo_path='~/data/')
+    dataset.load(backend=backend)
+    model = create_model(nout=len(dataset.targets['train']))
     momentum_params={
         'type': 'constant',
         'coef': 0.8,
