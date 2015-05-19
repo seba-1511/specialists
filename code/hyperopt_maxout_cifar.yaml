@@ -101,14 +101,6 @@
         ],
     },
 
-# logging options that are passed to logging.basicConfig
-# level value thresholds (set level lower to display them):
-#   CRITICAL 50
-#   ERROR    40
-#   WARNING  30
-#   INFO     20
-#   DEBUG    10
-#   NOTSET    0
     logging: {
         level: 20,
         format: '%(asctime)-15s %(levelname)s:%(module)s - %(message)s'
