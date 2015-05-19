@@ -1,6 +1,5 @@
 # Based on the Maxout Network for PyLearn2
 # To try:
-# - batch normalization
 # - 785 epochs
 # - momentum start and finish
 # - Weight decay with gdm
@@ -35,9 +34,10 @@
     },
 
   lrule: &gdm {
-      type: gradient_descent_momentum,
+      type: gradient_descent_momentum_weight_decay,
       lr_params: {
           learning_rate: 0.3,
+          weight_decay: 0.01,
           momentum_params: {
               type: constant,
               coef: 0.5,
@@ -47,10 +47,10 @@
   
   
   model: !obj:models.MLP {
-      num_epochs: 15,
-      batch_size: &bs 256,
+      num_epochs: 75,
+      batch_size: &bs 128,
       batch_norm: True,
-      #serialized_path: '~/saved_models/specialists/exp_cifar.prm',
+      serialized_path: '~/saved_models/specialists/exp_cifar.prm',
       layers: [
           &datalayer !obj:layers.DataLayer {
               name: d0,
