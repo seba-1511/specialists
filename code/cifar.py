@@ -52,7 +52,7 @@ def create_model(nout):
 
 def run():
     backend = gen_backend(rng_seed=0, gpu='cudanet')
-    dataset = CIFAR100(repo_path='~/data/')
+    dataset = CIFAR100(repo_path='~/data/', backend=backend)
     dataset.load(backend=backend)
     model = create_model(nout=len(dataset.targets['train']))
     momentum_params={
