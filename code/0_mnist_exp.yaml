@@ -20,7 +20,7 @@
   # MNIST data
   dataset: &ds !obj:datasets.MNIST {
     repo_path: '~/data',
-    sample_pct: 10, # change to 100 to use full dataset
+    sample_pct: 100, # change to 100 to use full dataset
   },
 
   metrics: {
@@ -59,7 +59,7 @@
   # CNN model specification
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
-    num_epochs: 5, # increase to improve performance
+    num_epochs: 15, # increase to improve performance
     batch_size: &bs 128,
 
     layers: [
