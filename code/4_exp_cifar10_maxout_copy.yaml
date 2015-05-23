@@ -45,17 +45,18 @@
   lrule: &gdm {
     type: gradient_descent_momentum,
     lr_params: {
-      learning_rate: 0.01,
+      learning_rate: 0.17,
       momentum_params: {
         type: linear_monotone,
-        coef: 0.90,
+        coef: 0.5,
       },
     },
   },
   # CNN model specification
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
-    num_epochs: 15,
+    num_epochs: 50,
+    batch_norm: True,
     batch_size: &bs 128,
     layers: [
       &datalayer !obj:layers.DataLayer {
