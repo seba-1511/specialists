@@ -66,10 +66,6 @@
         nofm: 3,
         ofmshape: [32, 32],
       },
-      !obj:layers.DropOutLayer {
-        name: do0,
-        keep: 0.9,
-      },
       !obj:layers.ConvLayer {
         name: layer1,
         lrule_init: *gdm,
