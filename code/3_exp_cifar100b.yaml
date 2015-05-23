@@ -18,7 +18,7 @@
 
 !obj:experiments.FitPredictErrorExperiment {
 
-  dataset: &ds !obj:datasets.CIFAR10 {
+  dataset: &ds !obj:datasets.CIFAR100 {
     repo_path: '~/data',
     sample_pct: 33,
   },
@@ -136,7 +136,7 @@
         name: output,
         lrule_init: *gdm,
         weight_init: *wt_init,
-        nout: 10,
+        nout: 100,
         activation: !obj:transforms.Logistic {},
       },
       &costlayer !obj:layers.CostLayer {
