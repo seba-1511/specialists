@@ -137,7 +137,7 @@
         lrule_init: *gdm,
         weight_init: *wt_init,
         nout: 10,
-        activation: !obj:transforms.Logistic {},
+        activation: !obj:transforms.Softmax {},
       },
       &costlayer !obj:layers.CostLayer {
         name: cost,

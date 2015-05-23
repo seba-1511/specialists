@@ -45,7 +45,7 @@
   lrule: &gdm {
     type: gradient_descent_momentum,
     lr_params: {
-      learning_rate: 0.17,
+      learning_rate: 0.017,
       momentum_params: {
         type: linear_monotone,
         coef: 0.5,
@@ -55,8 +55,7 @@
   # CNN model specification
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
-    num_epochs: 50,
-    batch_norm: True,
+    num_epochs: 15,
     batch_size: &bs 128,
     layers: [
       &datalayer !obj:layers.DataLayer {
@@ -89,7 +88,7 @@
        !obj:layers.ConvLayer {
         name: layer4,
         lrule_init: *gdm,
-        nofm: 96,
+        nofm: 192,
         fshape: [8, 8],
         weight_init: *wt_init0,
         activation: !obj:transforms.RectLin {},
@@ -110,7 +109,7 @@
      !obj:layers.ConvLayer {
         name: layer4,
         lrule_init: *gdm,
-        nofm: 96,
+        nofm: 192,
         fshape: [5, 5],
         weight_init: *wt_init0,
         activation: !obj:transforms.RectLin {},
@@ -140,7 +139,7 @@
         lrule_init: *gdm,
         weight_init: *wt_init,
         nout: 10,
-        activation: !obj:transforms.Logistic {},
+        activation: !obj:transforms.Softmax {},
       },
       &costlayer !obj:layers.CostLayer {
         name: cost,
