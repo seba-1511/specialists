@@ -56,7 +56,7 @@
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
     serialized_path: './saved_models/maxout_copy.prm',
-    num_epochs: 75,
+    num_epochs: 74,
     batch_norm: True,
     batch_size: &bs 128,
     layers: [
@@ -111,7 +111,7 @@
         stride: 2,
       },
        !obj:layers.CrossMapResponseNormLayer {
-         name: layer5b,
+         name: layer6,
          ksize: 5,
          alpha: 0.0001,
          beta: 1.9365,
@@ -121,7 +121,7 @@
         keep: 0.5,
       },
      !obj:layers.ConvLayer {
-        name: layer4,
+        name: layer7,
         lrule_init: *gdm,
         nofm: 192,
         fshape: [5, 5],
@@ -130,13 +130,13 @@
         pad: 3,
       },
       !obj:layers.PoolingLayer {
-        name: layer5,
+        name: layer8,
         op: 'max',
         fshape: [2, 2],
         stride: 2,
       },
        !obj:layers.CrossMapResponseNormLayer {
-         name: layer5b,
+         name: layer9,
          ksize: 5,
          alpha: 0.0001,
          beta: 1.9365,
@@ -146,7 +146,7 @@
         keep: 0.35,
       },
       !obj:layers.FCLayer {
-        name: layer6,
+        name: layer10,
         nout: 500,
         lrule_init: *gdm,
         weight_init: *wt_init,
