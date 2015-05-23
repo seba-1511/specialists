@@ -56,6 +56,7 @@
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
     num_epochs: 15,
+    batch_norm: True,
     batch_size: &bs 128,
     layers: [
       &datalayer !obj:layers.DataLayer {
