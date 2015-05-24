@@ -46,12 +46,12 @@
     type: gradient_descent_momentum_weight_decay,
     lr_params: {
       learning_rate: 0.17,
-      weight_decay: 0.0001,
-      schedule: {
-          type: step,
-          ratio: 0.01,
-          step_epochs: 10,
-      },
+      weight_decay: 0.001,
+      #schedule: {
+          #type: step,
+          #ratio: 0.01,
+          #step_epochs: 10,
+      #},
       momentum_params: {
         type: linear_monotone,
         coef: 0.5,
@@ -76,7 +76,7 @@
         name: layer1,
         lrule_init: *gdm,
         weight_init: *wt_init0,
-        nofm: 96,
+        nofm: 128,
         fshape: [8, 8],
         activation: !obj:transforms.RectLin {},
         pad: 4,
@@ -125,7 +125,7 @@
      !obj:layers.ConvLayer {
         name: layer7,
         lrule_init: *gdm,
-        nofm: 192,
+        nofm: 256,
         fshape: [5, 5],
         weight_init: *wt_init0,
         activation: !obj:transforms.RectLin {},
@@ -149,14 +149,14 @@
       },
       !obj:layers.FCLayer {
         name: layer10,
-        nout: 500,
+        nout: 1024,
         lrule_init: *gdm,
         weight_init: *wt_init,
         activation: !obj:transforms.RectLin {},
       },
       !obj:layers.DropOutLayer {
         name: do4,
-        keep: 0.25,
+        keep: 0.3,
       },
       &lastlayer !obj:layers.FCLayer {
         name: output,
