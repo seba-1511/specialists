@@ -43,9 +43,15 @@
   },
 
   lrule: &gdm {
-    type: gradient_descent_momentum,
+    type: gradient_descent_momentum_weight_decay,
     lr_params: {
-      learning_rate: 0.017,
+      learning_rate: 0.17,
+      weight_decay: 0.0001,
+      schedule: {
+          type: step,
+          ratio: 0.01,
+          step_epochs: 10,
+      },
       momentum_params: {
         type: linear_monotone,
         coef: 0.5,
@@ -55,8 +61,8 @@
   # CNN model specification
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
-    serialized_path: './saved_models/maxout_copy.prm',
-    num_epochs: 137,
+    #serialized_path: './saved_models/maxout_copy.prm',
+    num_epochs: 74,
     batch_norm: True,
     batch_size: &bs 128,
     layers: [
@@ -89,7 +95,7 @@
        },
       !obj:layers.DropOutLayer {
         name: do1,
-        keep: 0.75,
+        keep: 0.8,
       },
        !obj:layers.ConvLayer {
         name: layer4,
@@ -114,7 +120,7 @@
        },
       !obj:layers.DropOutLayer {
         name: do2,
-        keep: 0.5,
+        keep: 0.61,
       },
      !obj:layers.ConvLayer {
         name: layer7,
@@ -139,7 +145,7 @@
        },
       !obj:layers.DropOutLayer {
         name: do3,
-        keep: 0.35,
+        keep: 0.37,
       },
       !obj:layers.FCLayer {
         name: layer10,
