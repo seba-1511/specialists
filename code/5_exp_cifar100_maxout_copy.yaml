@@ -25,10 +25,16 @@
 
   metrics: {
     train: [
-      !obj:metrics.MisclassPercentage {},
+        !obj:metrics.MisclassPercentage {error_rank: 1},
+        !obj:metrics.MisclassPercentage {error_rank: 5},
+        !obj:metrics.MisclassPercentage {error_rank: 10},
+        !obj:metrics.MisclassPercentage {error_rank: 15},
     ],
     test: [
-      !obj:metrics.MisclassPercentage {},
+        !obj:metrics.MisclassPercentage {error_rank: 1},
+        !obj:metrics.MisclassPercentage {error_rank: 5},
+        !obj:metrics.MisclassPercentage {error_rank: 10},
+        !obj:metrics.MisclassPercentage {error_rank: 15},
     ],
   },
 
@@ -61,7 +67,7 @@
   # CNN model specification
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
-    serialized_path: './saved_models/maxout_copy.prm',
+    serialized_path: './saved_models/maxout_copy_100.prm',
     num_epochs: 74,
     batch_norm: True,
     batch_size: &bs 128,
