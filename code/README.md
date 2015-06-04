@@ -1,3 +1,24 @@
 # Code
 
 This directory contains the code for some of the experiments published in the paper.
+
+## Experiments
+The conducted experiments and their explanation.
+
+#### 0_mnist_exp
+A benchmark for MNIST.
+
+#### 1_exp_cifar10
+Testing a network on CIFAR100.
+
+#### 2_exp_cifar100
+The copy of 1 but executed on CIFAR100
+
+#### 3_exp_cifar100b
+The network of 2, improved and slightly tuned. (bad results)
+
+#### 4_exp_cifar10_maxout_copy
+A slightly modified version of the maxout paper on CIFAR10. (Uses ReLU, Dropout, and an additional layer) It reaches 20% error in 74 epochs.
+
+#### 5_exp_cifar100_maxout_copy
+The network of 4, running on CIFAR100.
