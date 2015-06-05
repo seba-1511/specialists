@@ -235,3 +235,4 @@ if __name__ == '__main__':
     # - overlapping vs no-overlapping
     # - greedy(+ friendliness) vs k-means vs spectral clustering
     # - Try for all the different kind of cm (cat, soft, soft_pred, soft_n_pred)
+    # - and compare on datasets
