@@ -214,25 +214,26 @@ if __name__ == '__main__':
     # targets = data.targets['test']
     # pred_probs = model.predict_proba(data.inputs['test'])
 
-    experiment = '5_test50_train33_156epochs'
+    #experiment = '5_test50_train33_156epochs'
+    experiment = '4_test22_train14_74epochs'
     train_pred_probs, test_pred_probs = load_inferences(name=experiment)
     train_targets, test_targets = load_targets(name=experiment)
     # train_pred_classes = np.argmax(train_pred_probs, axis=1)
     test_pred_classes = np.argmax(test_pred_probs, axis=1)
     cm_categorical = confusion_matrix(test_targets, test_pred_classes)
     cm_categorical = clean_cm(cm_categorical)
-    # cm_soft = soft_sum_cm(test_targets, test_pred_probs)
+    cm_soft = soft_sum_cm(test_targets, test_pred_probs)
     #cm_soft = soft_sum_pred_cm(test_targets, test_pred_probs)
-    friendliness = unfriendliness_matrix(cm_categorical)
-    #plot_confusion_matrix(friendliness)
+    friendliness = unfriendliness_matrix(cm_soft)
+    plot_confusion_matrix(friendliness)
     clusters = greedy_clustering(friendliness, 5)
 
     # plot_confusion_matrix(cm_soft, title=experiment)
     # plot_confusion_matrix(cm_categorical, title=experiment)
-
 
     # To try when generating sets:
     # - overlapping vs no-overlapping
     # - greedy(+ friendliness) vs k-means vs spectral clustering
     # - Try for all the different kind of cm (cat, soft, soft_pred, soft_n_pred)
     # - and compare on datasets
+    # - (in greedy_clustering, if classes not seen, should it be argmax or argmin ? )
