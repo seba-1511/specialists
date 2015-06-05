@@ -52,7 +52,7 @@
     type: gradient_descent_momentum_weight_decay,
     lr_params: {
       learning_rate: 0.17,
-      weight_decay: 0.0008,
+      weight_decay: 0.0005,
       schedule: {
           type: step,
           ratio: 0.15,
@@ -126,7 +126,7 @@
        },
       !obj:layers.DropOutLayer {
         name: do2,
-        keep: 0.61,
+        keep: 0.5,
       },
      !obj:layers.ConvLayer {
         name: layer7,
@@ -151,18 +151,29 @@
        },
       !obj:layers.DropOutLayer {
         name: do3,
-        keep: 0.37,
+        keep: 0.42,
       },
       !obj:layers.FCLayer {
         name: layer10,
-        nout: 1024,
+        nout: 2048,
         lrule_init: *gdm,
         weight_init: *wt_init,
         activation: !obj:transforms.RectLin {},
       },
       !obj:layers.DropOutLayer {
         name: do4,
-        keep: 0.3,
+        keep: 0.37,
+      },
+      !obj:layers.FCLayer {
+        name: layer11,
+        nout: 1024,
+        lrule_init: *gdm,
+        weight_init: *wt_init,
+        activation: !obj:transforms.RectLin {},
+      },
+      !obj:layers.DropOutLayer {
+        name: do5,
+        keep: 0.32,
       },
       &lastlayer !obj:layers.FCLayer {
         name: output,
