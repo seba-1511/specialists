@@ -25,11 +25,11 @@ CURR_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def load_targets(name):
-    f = open(CURR_DIR + '/inferences/' + name + '/train-targets.pkl', 'rb')
+    f = open(CURR_DIR + '/saved_experiments/' + name + '/train-targets.pkl', 'rb')
     train = pk.load(f)
     train = np.argmax(train, axis=1)
     f.close()
-    f = open(CURR_DIR + '/inferences/' + name + '/test-targets.pkl', 'rb')
+    f = open(CURR_DIR + '/saved_experiments/' + name + '/test-targets.pkl', 'rb')
     test = pk.load(f)
     test = np.argmax(test, axis=1)
     f.close()
@@ -37,10 +37,10 @@ def load_targets(name):
 
 
 def load_inferences(name):
-    f = open(CURR_DIR + '/inferences/' + name + '/train-inference.pkl', 'rb')
+    f = open(CURR_DIR + '/saved_experiments/' + name + '/train-inference.pkl', 'rb')
     train = pk.load(f)
     f.close()
-    f = open(CURR_DIR + '/inferences/' + name + '/test-inference.pkl', 'rb')
+    f = open(CURR_DIR + '/saved_experiments/' + name + '/test-inference.pkl', 'rb')
     test = pk.load(f)
     f.close()
     return (train, test)
@@ -215,7 +215,8 @@ if __name__ == '__main__':
     # pred_probs = model.predict_proba(data.inputs['test'])
 
     #experiment = '5_test50_train33_156epochs'
-    experiment = '4_test22_train14_74epochs'
+    experiment = '5_test45_train22_740epochs'
+    #experiment = '4_test22_train14_74epochs'
     train_pred_probs, test_pred_probs = load_inferences(name=experiment)
     train_targets, test_targets = load_targets(name=experiment)
     # train_pred_classes = np.argmax(train_pred_probs, axis=1)
