@@ -23,6 +23,8 @@
     sample_pct: 100,
   },
 
+  predictions: ['train', 'test'],
+
   metrics: {
     train: [
         !obj:metrics.MisclassPercentage {error_rank: 1},
@@ -55,8 +57,8 @@
       weight_decay: 0.0005,
       schedule: {
           type: step,
-          ratio: 0.15,
-          step_epochs: 20,
+          ratio: 0.1,
+          step_epochs: 50,
       },
       momentum_params: {
         type: linear_monotone,
@@ -67,8 +69,8 @@
   # CNN model specification
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
-    serialized_path: './saved_models/maxout_copy_100.prm',
-    num_epochs: 74,
+    serialized_path: './saved_models/5_saved_copy.prm',
+    num_epochs: 740,
     batch_norm: True,
     batch_size: &bs 128,
     layers: [
@@ -166,7 +168,7 @@
       },
       !obj:layers.FCLayer {
         name: layer11,
-        nout: 1024,
+        nout: 2048,
         lrule_init: *gdm,
         weight_init: *wt_init,
         activation: !obj:transforms.RectLin {},

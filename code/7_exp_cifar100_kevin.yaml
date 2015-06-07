@@ -67,7 +67,7 @@
   # CNN model specification
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
-    serialized_path: './saved_models/maxout_copy_100.prm',
+    serialized_path: './saved_models/7_kevinnet_100.prm',
     num_epochs: 74,
     batch_norm: True,
     batch_size: &bs 128,
