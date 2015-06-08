@@ -9,14 +9,19 @@
 import os
 import numpy as np
 import cPickle as pk
+from itertools import izip
 
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 
 from neon.backends.par import NoPar
-from neon.datasets import CIFAR100
+from neon.datasets.dataset import Dataset
+from neon.datasets import (
+    CIFAR10,
+    CIFAR100,
+    MNIST,
+)
 from neon.backends.cpu import CPU
-
 from model_layers import (
     load_cifar100_train32_test50,
 )
@@ -25,11 +30,13 @@ CURR_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def load_targets(name):
-    f = open(CURR_DIR + '/saved_experiments/' + name + '/train-targets.pkl', 'rb')
+    f = open(CURR_DIR + '/saved_experiments/' +
+             name + '/train-targets.pkl', 'rb')
     train = pk.load(f)
     train = np.argmax(train, axis=1)
     f.close()
-    f = open(CURR_DIR + '/saved_experiments/' + name + '/test-targets.pkl', 'rb')
+    f = open(CURR_DIR + '/saved_experiments/' +
+             name + '/test-targets.pkl', 'rb')
     test = pk.load(f)
     test = np.argmax(test, axis=1)
     f.close()
@@ -37,10 +44,12 @@ def load_targets(name):
 
 
 def load_inferences(name):
-    f = open(CURR_DIR + '/saved_experiments/' + name + '/train-inference.pkl', 'rb')
+    f = open(CURR_DIR + '/saved_experiments/' +
+             name + '/train-inference.pkl', 'rb')
     train = pk.load(f)
     f.close()
-    f = open(CURR_DIR + '/saved_experiments/' + name + '/test-inference.pkl', 'rb')
+    f = open(CURR_DIR + '/saved_experiments/' +
+             name + '/test-inference.pkl', 'rb')
     test = pk.load(f)
     f.close()
     return (train, test)
@@ -91,7 +100,7 @@ def soft_sum_cm(targets, preds):
             values = np.where(targets == label, preds[:, i], placeholder)
             entry.append(sum(values))
         cm[label] += entry
-    return clean_cm(cm)
+    return cm
 
 
 def soft_sum_pred_cm(targets, preds):
@@ -111,7 +120,7 @@ def soft_sum_pred_cm(targets, preds):
                 label == np.argmax(preds, axis=1), values, placeholder)
             entry.append(sum(values))
         cm[label] += entry
-    return clean_cm(cm)
+    return cm
 
 
 def soft_sum_n_pred_cm(targets, preds, n=5):
@@ -208,29 +217,108 @@ def greedy_clustering_overlapping(friends, N):
     return clusters
 
 
+class SpecialistDataset(Dataset):
+
+    """
+         Class allowing to create a sub-dataset, from a given one.
+         Especially usefull for specialists.
+    """
+
+    datasets = {
+        'cifar10': CIFAR10,
+        'cifar100': CIFAR100,
+        'mnist': MNIST,
+    }
+    clustering_methods = {
+        'greedy': greedy_clustering,
+        'overlap_greedy': greedy_clustering_overlapping,
+        'spectral': None,
+        'kmeans': None,
+    }
+    cm_types = {
+        'standard': confusion_matrix,
+        'soft_sum': soft_sum_cm,
+        'soft_sum_pred_cm': soft_sum_pred_cm,
+        'soft_sum_n_pred': soft_sum_n_pred_cm,
+    }
+
+    def __init__(self, dataset='', experiment='', nb_clusters=5, cluster=0,
+                 confusion_matrix='soft_sum_pred_cm', clustering='greedy'):
+        """
+            dataset: which dataset to sub-set.
+            experiment: on which experiment should the clustering process be
+                        based, and the inferences loaded.
+            nb_clusters: total number of clusters.
+            cluster: which cluster to use for this current experiment.
+        """
+        self.dataset = self.datasets[dataset](repo_path='~/data')
+        self.experiment = experiment
+        self.nb_clusters = nb_clusters
+        self.cluster = cluster
+        self.confusion_matrix = self.cm_types[confusion_matrix]
+        self.clustering = self.clustering_methods[clustering]
+
+    def initialize(self):
+        return self.dataset.initialize(self)
+
+    def fetch_dataset(self, save_dir):
+        return self.dataset.fetch_dataset(save_dir)
+
+    def load_file(self, filename, nclasses):
+        return self.dataset.load_file(filename, nclasses)
+
+    def load(self, backend, experiment):
+        self.dataset.load(backend, experiment)
+        train_probs, test_probs = load_inferences(name=self.experiment)
+        train_targets, test_targets = load_inferences(name=self.experiment)
+        cm = self.confusion_matrix(test_targets, test_probs)
+        cm = clean_cm(cm)
+        friendliness = unfriendliness_matrix(cm)
+        cluster = self.clustering(friendliness, self.nb_clusters)[self.cluster]
+        new_inputs = []
+        new_targets = []
+        for i, t in izip(self.dataset.inputs['train'], self.dataset.targets['train']):
+            if np.argmax(t) in cluster:
+                new_inputs.append(i)
+                new_targets.append(t)
+        self.dataset.inputs['train'] = np.array(new_inputs)
+        self.dataset.targets['train'] = np.array(new_targets)
+        new_inputs = []
+        new_targets = []
+        for i, t in izip(self.dataset.inputs['test'], self.dataset.targets['test']):
+            if np.argmax(t) in cluster:
+                new_inputs.append(i)
+                new_targets.append(t)
+        self.dataset.inputs['test'] = np.array(new_inputs)
+        self.dataset.targets['test'] = np.array(new_targets)
+        self.dataset.format()
+
+
 if __name__ == '__main__':
     # model = load_cifar100_train32_test50()
     # data, par = load_data()
     # targets = data.targets['test']
     # pred_probs = model.predict_proba(data.inputs['test'])
 
-    #experiment = '5_test50_train33_156epochs'
+    # experiment = '5_test50_train33_156epochs'
     experiment = '5_test45_train22_740epochs'
-    #experiment = '4_test22_train14_74epochs'
-    train_pred_probs, test_pred_probs = load_inferences(name=experiment)
-    train_targets, test_targets = load_targets(name=experiment)
+    # experiment = '4_test22_train14_74epochs'
+    # train_pred_probs, test_pred_probs = load_inferences(name=experiment)
+    # train_targets, test_targets = load_targets(name=experiment)
     # train_pred_classes = np.argmax(train_pred_probs, axis=1)
-    test_pred_classes = np.argmax(test_pred_probs, axis=1)
-    cm_categorical = confusion_matrix(test_targets, test_pred_classes)
-    cm_categorical = clean_cm(cm_categorical)
-    cm_soft = soft_sum_cm(test_targets, test_pred_probs)
-    #cm_soft = soft_sum_pred_cm(test_targets, test_pred_probs)
-    friendliness = unfriendliness_matrix(cm_soft)
-    plot_confusion_matrix(friendliness)
-    clusters = greedy_clustering(friendliness, 5)
+    # test_pred_classes = np.argmax(test_pred_probs, axis=1)
+    # cm_categorical = confusion_matrix(test_targets, test_pred_classes)
+    # cm_categorical = clean_cm(cm_categorical)
+    # cm_soft = soft_sum_cm(test_targets, test_pred_probs)
+    # cm_soft = soft_sum_pred_cm(test_targets, test_pred_probs)
+    # friendliness = unfriendliness_matrix(cm_soft)
+    # plot_confusion_matrix(friendliness)
+    # clusters = greedy_clustering(friendliness, 5)
 
     # plot_confusion_matrix(cm_soft, title=experiment)
     # plot_confusion_matrix(cm_categorical, title=experiment)
+
+    sdata = SpecialistDataset(dataset='cifar100', experiment=experiment)
 
     # To try when generating sets:
     # - overlapping vs no-overlapping
