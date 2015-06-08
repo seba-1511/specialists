@@ -22,20 +22,20 @@ from neon.datasets import (
     MNIST,
 )
 from neon.backends.cpu import CPU
-from model_layers import (
-    load_cifar100_train32_test50,
-)
+# from model_layers import (
+    # load_cifar100_train32_test50,
+#)
 
 CURR_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def load_targets(name):
-    f = open(CURR_DIR + '/saved_experiments/' +
+def load_targets(path, name):
+    f = open(path + '/saved_experiments/' +
              name + '/train-targets.pkl', 'rb')
     train = pk.load(f)
     train = np.argmax(train, axis=1)
     f.close()
-    f = open(CURR_DIR + '/saved_experiments/' +
+    f = open(path + '/saved_experiments/' +
              name + '/test-targets.pkl', 'rb')
     test = pk.load(f)
     test = np.argmax(test, axis=1)
@@ -43,12 +43,12 @@ def load_targets(name):
     return (train, test)
 
 
-def load_inferences(name):
-    f = open(CURR_DIR + '/saved_experiments/' +
+def load_inferences(path, name):
+    f = open(path + '/saved_experiments/' +
              name + '/train-inference.pkl', 'rb')
     train = pk.load(f)
     f.close()
-    f = open(CURR_DIR + '/saved_experiments/' +
+    f = open(path + '/saved_experiments/' +
              name + '/test-inference.pkl', 'rb')
     test = pk.load(f)
     f.close()
@@ -105,7 +105,7 @@ def soft_sum_cm(targets, preds):
 
 def soft_sum_pred_cm(targets, preds):
     """
-        Returns a confusion matrix, where the the content of a cell is the sum
+        Returns a confusion matrix, where the content of a cell is the sum
         of prediction probabilities, only when this class was predicted.
     """
     N = max(targets) + 1
@@ -243,7 +243,8 @@ class SpecialistDataset(Dataset):
     }
 
     def __init__(self, dataset='', experiment='', nb_clusters=5, cluster=0,
-                 confusion_matrix='soft_sum_pred_cm', clustering='greedy'):
+                 confusion_matrix='soft_sum_pred_cm', clustering='greedy',
+                 repo_path='~/data', inferences_path='~/inferences', **kwargs):
         """
             dataset: which dataset to sub-set.
             experiment: on which experiment should the clustering process be
@@ -251,57 +252,64 @@ class SpecialistDataset(Dataset):
             nb_clusters: total number of clusters.
             cluster: which cluster to use for this current experiment.
         """
-        self.dataset = self.datasets[dataset](repo_path='~/data')
+        self.repo_path = repo_path
+        dataset = self.datasets[dataset](
+            repo_path=self.repo_path, **kwargs)
+        self.__dict__ = dataset.__dict__
+        self.dataset = dataset
         self.experiment = experiment
         self.nb_clusters = nb_clusters
         self.cluster = cluster
         self.confusion_matrix = self.cm_types[confusion_matrix]
         self.clustering = self.clustering_methods[clustering]
-
-    def initialize(self):
-        return self.dataset.initialize(self)
-
-    def fetch_dataset(self, save_dir):
-        return self.dataset.fetch_dataset(save_dir)
-
-    def load_file(self, filename, nclasses):
-        return self.dataset.load_file(filename, nclasses)
+        self.inferences_path = inferences_path
 
     def load(self, backend, experiment):
         self.dataset.load(backend, experiment)
-        train_probs, test_probs = load_inferences(name=self.experiment)
-        train_targets, test_targets = load_inferences(name=self.experiment)
+        train_probs, test_probs = load_inferences(
+            path=self.inferences_path, name=self.experiment)
+        train_targets, test_targets = load_inferences(
+            path=self.inferences_path, name=self.experiment)
+        test_targets = np.argmax(test_targets, axis=1)
         cm = self.confusion_matrix(test_targets, test_probs)
         cm = clean_cm(cm)
         friendliness = unfriendliness_matrix(cm)
         cluster = self.clustering(friendliness, self.nb_clusters)[self.cluster]
         new_inputs = []
         new_targets = []
-        for i, t in izip(self.dataset.inputs['train'], self.dataset.targets['train']):
-            if np.argmax(t) in cluster:
-                new_inputs.append(i)
-                new_targets.append(t)
+        for bi, bt in izip(self.dataset.inputs['train'], self.dataset.targets['train']):
+            bi = bi.raw.transpose()
+            bt = bt.raw.transpose()
+            for i, t in izip(bi, bt):
+                if np.argmax(t) in cluster:
+                    new_inputs.append(i)
+                    new_targets.append(t)
         self.dataset.inputs['train'] = np.array(new_inputs)
         self.dataset.targets['train'] = np.array(new_targets)
         new_inputs = []
         new_targets = []
-        for i, t in izip(self.dataset.inputs['test'], self.dataset.targets['test']):
-            if np.argmax(t) in cluster:
-                new_inputs.append(i)
-                new_targets.append(t)
+        for bi, bt in izip(self.dataset.inputs['test'], self.dataset.targets['test']):
+            bi = bi.raw.transpose()
+            bt = bt.raw.transpose()
+            for i, t in izip(bi, bt):
+                if np.argmax(t) in cluster:
+                    new_inputs.append(i)
+                    new_targets.append(t)
         self.dataset.inputs['test'] = np.array(new_inputs)
         self.dataset.targets['test'] = np.array(new_targets)
-        self.dataset.format()
+        self.inputs = self.dataset.inputs
+        self.targets = self.dataset.targets
+        self.format()
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     # model = load_cifar100_train32_test50()
     # data, par = load_data()
     # targets = data.targets['test']
     # pred_probs = model.predict_proba(data.inputs['test'])
 
     # experiment = '5_test50_train33_156epochs'
-    experiment = '5_test45_train22_740epochs'
+    # experiment = '5_test45_train22_740epochs'
     # experiment = '4_test22_train14_74epochs'
     # train_pred_probs, test_pred_probs = load_inferences(name=experiment)
     # train_targets, test_targets = load_targets(name=experiment)
@@ -318,7 +326,7 @@ if __name__ == '__main__':
     # plot_confusion_matrix(cm_soft, title=experiment)
     # plot_confusion_matrix(cm_categorical, title=experiment)
 
-    sdata = SpecialistDataset(dataset='cifar100', experiment=experiment)
+    # sdata = SpecialistDataset(dataset='cifar100', experiment=experiment)
 
     # To try when generating sets:
     # - overlapping vs no-overlapping

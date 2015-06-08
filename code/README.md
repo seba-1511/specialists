@@ -28,3 +28,12 @@ A slightly modified version of the maxout paper on CIFAR10. (Uses ReLU, Dropout,
 
 #### 5_exp_cifar100_maxout_copy
 The network of 4, running on CIFAR100.
+
+#### specialist.py
+A file to perform the clustering, and generate subset of datasets for specialists to learn. **It has to be copied in neon/neon/datasets** in order to be used. (and neon must be installed in development mode.)
+
+#### 7_exp_cifar100_kevin
+A dirty (Non-working) copy of “kevinet” as shown in the model file at: https://gist.github.com/kevinlin311tw/266d4150a1db5810398e
+
+#### 8_exp_cifar10_specdataset
+A simple network to test if the SpecialistDataset class works to load subsets of the whole dataset.
