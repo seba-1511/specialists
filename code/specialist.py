@@ -244,7 +244,8 @@ class SpecialistDataset(Dataset):
 
     def __init__(self, dataset='', experiment='', nb_clusters=5, cluster=0,
                  confusion_matrix='soft_sum_pred_cm', clustering='greedy',
-                 repo_path='~/data', inferences_path='~/inferences', **kwargs):
+                 repo_path='~/data', inferences_path='~/inferences',
+                 full_predictions=False, **kwargs):
         """
             dataset: which dataset to sub-set.
             experiment: on which experiment should the clustering process be
@@ -263,6 +264,7 @@ class SpecialistDataset(Dataset):
         self.confusion_matrix = self.cm_types[confusion_matrix]
         self.clustering = self.clustering_methods[clustering]
         self.inferences_path = inferences_path
+        self.full_predictions = full_predictions
 
     def load(self, backend, experiment):
         self.dataset.load(backend, experiment)
@@ -292,7 +294,7 @@ class SpecialistDataset(Dataset):
             bi = bi.raw.transpose()
             bt = bt.raw.transpose()
             for i, t in izip(bi, bt):
-                if np.argmax(t) in cluster:
+                if np.argmax(t) in cluster or self.full_predictions:
                     new_inputs.append(i)
                     new_targets.append(t)
         self.dataset.inputs['test'] = np.array(new_inputs)
@@ -334,3 +336,4 @@ class SpecialistDataset(Dataset):
     # - Try for all the different kind of cm (cat, soft, soft_pred, soft_n_pred)
     # - and compare on datasets
     # - (in greedy_clustering, if classes not seen, should it be argmax or argmin ? )
+    # - When making predictions, do it on the whole test set not the cluster subset.
