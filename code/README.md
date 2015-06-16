@@ -37,3 +37,6 @@ A dirty (Non-working) copy of “kevinet” as shown in the model file at: https
 
 #### 8_exp_cifar10_specdataset
 A simple network to test if the SpecialistDataset class works to load subsets of the whole dataset.
+
+#### fit_spec_err.py
+Definition of a specialist experiment, to include in neon/neon/experiments/

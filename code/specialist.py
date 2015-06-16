@@ -280,8 +280,8 @@ class SpecialistDataset(Dataset):
         new_inputs = []
         new_targets = []
         for bi, bt in izip(self.dataset.inputs['train'], self.dataset.targets['train']):
-            bi = bi.raw.transpose()
-            bt = bt.raw.transpose()
+            bi = bi.asnumpyarray().transpose()
+            bt = bt.asnumpyarray().transpose()
             for i, t in izip(bi, bt):
                 if np.argmax(t) in cluster:
                     new_inputs.append(i)
@@ -291,8 +291,8 @@ class SpecialistDataset(Dataset):
         new_inputs = []
         new_targets = []
         for bi, bt in izip(self.dataset.inputs['test'], self.dataset.targets['test']):
-            bi = bi.raw.transpose()
-            bt = bt.raw.transpose()
+            bi = bi.asnumpyarray().transpose()
+            bt = bt.asnumpyarray().transpose()
             for i, t in izip(bi, bt):
                 if np.argmax(t) in cluster or self.full_predictions:
                     new_inputs.append(i)
