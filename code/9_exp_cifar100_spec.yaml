@@ -19,9 +19,10 @@
 !obj:experiments.FitPredictErrorExperiment {
 
   dataset: &ds !obj:datasets.SpecialistDataset {
-    repo_path: '~/data',
-    sample_pct: 100,
-    dataset: 'cifar100',
+    dataset: !obj:neon.datasets.CIFAR100 {
+            repo_path: '~/data',
+            sample_pct: 100,
+        }
     experiment: '5_test45_train22_740epochs',
     inferences_path: '/home/ubuntu/specialists/code/',
     nb_clusters: 10,
