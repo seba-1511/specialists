@@ -54,7 +54,7 @@
     type: gradient_descent_momentum_weight_decay,
     lr_params: {
       learning_rate: 0.17,
-      weight_decay: 0.0005,
+      weight_decay: 0.00001,
       schedule: {
           type: step,
           ratio: 0.1,
@@ -69,10 +69,10 @@
   # CNN model specification
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
-    serialized_path: './saved_models/5_saved_copy.prm',
+#    serialized_path: './saved_models/5_saved_copy.prm',
     num_epochs: 740,
     batch_norm: True,
-    batch_size: &bs 128,
+    batch_size: &bs 32,
     layers: [
       &datalayer !obj:layers.DataLayer {
         name: d0,
