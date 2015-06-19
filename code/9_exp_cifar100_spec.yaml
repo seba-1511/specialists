@@ -63,10 +63,10 @@
     type: gradient_descent_momentum_weight_decay,
     lr_params: {
       learning_rate: 0.0017,
-      weight_decay: 0.025,
+      weight_decay: 0.035,
       schedule: {
           type: step,
-          ratio: 0.2,
+          ratio: 0.4,
           step_epochs: 10,
       },
       momentum_params: {
@@ -79,7 +79,7 @@
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
     deserialized_path: './saved_experiments/5_test45_train22_740epochs/model.prm',
-    num_epochs: 800,
+    num_epochs: 823,
     batch_norm: True,
     batch_size: &bs 128,
     layers: [
