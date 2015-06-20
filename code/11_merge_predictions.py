@@ -43,12 +43,28 @@ def load_spec_inferences(name, spec):
     pass
 
 
-def merge_predictions():
-    pass
+def to_one_hot(i, n_classes):
+    return np.array([0 if x != i else 1 for x in xrange(n_classes)])
 
 
-def merge_predictions_weighted():
-    pass
+def merge_predictions(generalist, specialist, cluster, final):
+    n_classes = len(generalist[0])
+    for i, g in enumerate(generalist):
+        if np.argmax(g) in cluster:
+            s = np.argmax(specialist[i])
+            s = to_one_hot(cluster[s], n_classes)
+            final[i] += s
+    return final
+
+
+def merge_predictions_weighted(generalist, specialist, cluster, final):
+    n_classes = len(generalist[0])
+    for i, g in enumerate(generalist):
+        if np.argmax(g) in cluster:
+            s = np.argmax(specialist[i])
+            s = to_one_hot(cluster[s], n_classes)
+            final[i] += np.max(g) * s
+    return final
 
 if __name__ == '__main__':
     experiment = '5_test45_train22_740epochs'
