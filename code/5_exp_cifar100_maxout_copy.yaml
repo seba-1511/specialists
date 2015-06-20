@@ -24,6 +24,10 @@
   },
 
   predictions: ['train', 'test'],
+  backend: !obj:backends.gen_backend {
+        gpu: 'cudanet',
+        datapar: True,
+  },
 
   metrics: {
     train: [

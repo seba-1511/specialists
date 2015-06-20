@@ -24,6 +24,11 @@
   },
 
   predictions: ['train', 'test'],
+  backend: !obj:backends.gen_backend {
+        gpu: 'cudanet',
+        datapar: True,
+  },
+  return_item: test,
 
   metrics: {
     train: [
@@ -53,8 +58,8 @@
   lrule: &gdm {
     type: gradient_descent_momentum_weight_decay,
     lr_params: {
-      learning_rate: 0.17,
-      weight_decay: 0.00001,
+      learning_rate: !hyperopt lr FLOAT 0.001 0.9,
+      weight_decay: !hyperopt weight_decay FLOAT 0.0001 0.9,
       schedule: {
           type: step,
           ratio: 0.1,
@@ -62,7 +67,7 @@
       },
       momentum_params: {
         type: linear_monotone,
-        coef: 0.5,
+        coef: !hyperopt momentum FLOAT 0.1 0.9,
       },
     },
   },
@@ -70,9 +75,9 @@
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
 #    serialized_path: './saved_models/5_saved_copy.prm',
-    num_epochs: 740,
+    num_epochs: !hyperopt num_epochs INT 30 150,
     batch_norm: True,
-    batch_size: &bs 32,
+    batch_size: &bs 128,
     layers: [
       &datalayer !obj:layers.DataLayer {
         name: d0,
