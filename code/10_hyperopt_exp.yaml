@@ -18,18 +18,9 @@
 
 !obj:experiments.FitPredictErrorExperiment {
 
-  dataset: &ds !obj:datasets.SpecialistDataset {
-    dataset: !obj:neon.datasets.CIFAR100 {
-            repo_path: '~/data',
-            sample_pct: 100,
-        },
-    experiment: '5_test45_train22_740epochs',
-    inferences_path: '/home/ubuntu/specialists/code/',
-    nb_clusters: 10,
-    cluster: 0,
-    full_predictions: False,
-    confusion_matrix: 'soft_sum_pred_cm',
-    clustering: 'greedy',
+  dataset: &ds !obj:datasets.CIFAR100 {
+    repo_path: '~/data',
+    sample_pct: 100,
   },
 
   predictions: ['train', 'test'],
@@ -37,15 +28,15 @@
   metrics: {
     train: [
         !obj:metrics.MisclassPercentage {error_rank: 1},
-        #!obj:metrics.MisclassPercentage {error_rank: 5},
-        #!obj:metrics.MisclassPercentage {error_rank: 10},
-        #!obj:metrics.MisclassPercentage {error_rank: 15},
+        !obj:metrics.MisclassPercentage {error_rank: 5},
+        !obj:metrics.MisclassPercentage {error_rank: 10},
+        !obj:metrics.MisclassPercentage {error_rank: 15},
     ],
     test: [
         !obj:metrics.MisclassPercentage {error_rank: 1},
-        #!obj:metrics.MisclassPercentage {error_rank: 5},
-        #!obj:metrics.MisclassPercentage {error_rank: 10},
-        #!obj:metrics.MisclassPercentage {error_rank: 15},
+        !obj:metrics.MisclassPercentage {error_rank: 5},
+        !obj:metrics.MisclassPercentage {error_rank: 10},
+        !obj:metrics.MisclassPercentage {error_rank: 15},
     ],
   },
 
@@ -62,12 +53,12 @@
   lrule: &gdm {
     type: gradient_descent_momentum_weight_decay,
     lr_params: {
-      learning_rate: 0.0017,
-      weight_decay: 0.025,
+      learning_rate: 0.17,
+      weight_decay: 0.00001,
       schedule: {
           type: step,
-          ratio: 0.4,
-          step_epochs: 10,
+          ratio: 0.1,
+          step_epochs: 50,
       },
       momentum_params: {
         type: linear_monotone,
@@ -78,10 +69,10 @@
   # CNN model specification
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
-    deserialized_path: './saved_experiments/5_test45_train22_740epochs/model.prm',
-    num_epochs: 823,
+#    serialized_path: './saved_models/5_saved_copy.prm',
+    num_epochs: 740,
     batch_norm: True,
-    batch_size: &bs 128,
+    batch_size: &bs 32,
     layers: [
       &datalayer !obj:layers.DataLayer {
         name: d0,
@@ -190,7 +181,7 @@
         name: output,
         lrule_init: *gdm,
         weight_init: *wt_init,
-        nout: 14,
+        nout: 100,
         activation: !obj:transforms.Softmax {},
       },
       &costlayer !obj:layers.CostLayer {
@@ -214,3 +205,4 @@
     format: '%(asctime)-15s %(levelname)s:%(module)s - %(message)s'
   },
 }
+

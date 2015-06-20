@@ -41,8 +41,8 @@ A simple network to test if the SpecialistDataset class works to load subsets of
 #### 9_exp_cifar100_spec
 A sample experiment to train Specialists using SpecialistDataset on CIFAR100.
 
-#### 10_mnist_spec_exp
-An example on how to use the fit_spec_err experiment type on MNIST.
+#### 10_hyperopt_exp
+Experiement to optimize hyper parameters using spearmint.
 
 #### fit_spec_err
 Definition of a specialist experiment, to include in neon/neon/experiments/
