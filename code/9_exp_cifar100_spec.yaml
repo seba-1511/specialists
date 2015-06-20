@@ -190,7 +190,7 @@
         name: output,
         lrule_init: *gdm,
         weight_init: *wt_init,
-        nout: 10,
+        nout: 9,
         activation: !obj:transforms.Softmax {},
       },
       &costlayer !obj:layers.CostLayer {
