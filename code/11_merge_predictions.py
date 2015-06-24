@@ -52,6 +52,21 @@ def load_spec_inferences(name, spec):
     return (train, test)
 
 
+def load_spec_targets(name, spec):
+    path = CURR_DIR
+    f = open(path + '/saved_experiments/' +
+             name + '/spec_' + spec + '/train-targets.pkl', 'rb')
+    train = pk.load(f)
+    train = np.argmax(train, axis=1)
+    f.close()
+    f = open(path + '/saved_experiments/' +
+             name + '/spec_' + spec + '/test-targets.pkl', 'rb')
+    test = pk.load(f)
+    test = np.argmax(test, axis=1)
+    f.close()
+    return (train, test)
+
+
 def to_one_hot(i, n_classes):
     return np.array([0 if x != i else 1 for x in xrange(n_classes)])
 
