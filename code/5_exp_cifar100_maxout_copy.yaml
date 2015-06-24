@@ -26,7 +26,7 @@
   predictions: ['train', 'test'],
   backend: !obj:backends.gen_backend {
         gpu: 'cudanet',
-        datapar: True,
+#        datapar: True,
   },
 
   metrics: {
@@ -54,11 +54,28 @@
     bias_init: 0.0,
   },
 
-  lrule: &gdm {
+   lrule: &gdm {
     type: gradient_descent_momentum_weight_decay,
     lr_params: {
+      learning_rate: 0.001,
+      weight_decay: 0.0001,
+      schedule: {
+          type: step,
+          ratio: 0.1,
+          step_epochs: 50,
+      },
+      momentum_params: {
+        type: linear_monotone,
+        coef: 0.1,
+      },
+    },
+  },
+
+ lrule: &rms {
+    type: rmsprop,
+    lr_params: {
       learning_rate: 0.17,
-      weight_decay: 0.00001,
+      weight_decay: 0.0005,
       schedule: {
           type: step,
           ratio: 0.1,
@@ -73,10 +90,10 @@
   # CNN model specification
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
-#    serialized_path: './saved_models/5_saved_copy.prm',
-    num_epochs: 740,
+    serialized_path: './saved_models/5_rmsprop_original.prm',
+    num_epochs: 540,
     batch_norm: True,
-    batch_size: &bs 32,
+    batch_size: &bs 128,
     layers: [
       &datalayer !obj:layers.DataLayer {
         name: d0,
@@ -86,7 +103,7 @@
       },
       !obj:layers.ConvLayer {
         name: layer1,
-        lrule_init: *gdm,
+        lrule_init: *rms,
         weight_init: *wt_init0,
         nofm: 128,
         fshape: [8, 8],
@@ -111,7 +128,7 @@
       },
        !obj:layers.ConvLayer {
         name: layer4,
-        lrule_init: *gdm,
+        lrule_init: *rms,
         nofm: 192,
         fshape: [8, 8],
         weight_init: *wt_init0,
@@ -136,7 +153,7 @@
       },
      !obj:layers.ConvLayer {
         name: layer7,
-        lrule_init: *gdm,
+        lrule_init: *rms,
         nofm: 256,
         fshape: [5, 5],
         weight_init: *wt_init0,
@@ -162,7 +179,7 @@
       !obj:layers.FCLayer {
         name: layer10,
         nout: 2048,
-        lrule_init: *gdm,
+        lrule_init: *rms,
         weight_init: *wt_init,
         activation: !obj:transforms.RectLin {},
       },
@@ -173,7 +190,7 @@
       !obj:layers.FCLayer {
         name: layer11,
         nout: 2048,
-        lrule_init: *gdm,
+        lrule_init: *rms,
         weight_init: *wt_init,
         activation: !obj:transforms.RectLin {},
       },
@@ -183,7 +200,7 @@
       },
       &lastlayer !obj:layers.FCLayer {
         name: output,
-        lrule_init: *gdm,
+        lrule_init: *rms,
         weight_init: *wt_init,
         nout: 100,
         activation: !obj:transforms.Softmax {},

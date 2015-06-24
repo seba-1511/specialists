@@ -26,7 +26,7 @@
     experiment: '5_test45_train22_740epochs',
     inferences_path: '/home/ubuntu/specialists/code/',
     nb_clusters: 10,
-    cluster: 9,
+    cluster: 2,
     full_predictions: False,
     confusion_matrix: 'soft_sum_pred_cm',
     clustering: 'greedy',
@@ -79,7 +79,7 @@
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
     deserialized_path: './saved_experiments/5_test45_train22_740epochs/model.prm',
-    num_epochs: 863,
+    num_epochs: 950,
     batch_norm: True,
     batch_size: &bs 128,
     layers: [
@@ -190,7 +190,7 @@
         name: output,
         lrule_init: *gdm,
         weight_init: *wt_init,
-        nout: 9,
+        nout: 8,
         activation: !obj:transforms.Softmax {},
       },
       &costlayer !obj:layers.CostLayer {

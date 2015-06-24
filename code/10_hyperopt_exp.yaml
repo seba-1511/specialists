@@ -26,7 +26,8 @@
   predictions: ['train', 'test'],
   backend: !obj:backends.gen_backend {
         gpu: 'cudanet',
-        datapar: True,
+        #datapar: True,
+        device_id: 1,
   },
   return_item: test,
 
