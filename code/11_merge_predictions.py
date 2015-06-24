@@ -77,11 +77,23 @@ def merge_predictions_weighted(generalist, specialist, cluster, final):
 
 
 def spec_log_loss(targets, probs, cluster):
-    pass
+    spec_tar = []
+    spec_probs = []
+    for t, p in zip(targets, probs):
+        if t in cluster:
+            spec_tar.append(t)
+            spec_probs.append(p)
+    return log_loss(spec_tar, spec_probs)
 
 
 def spec_accuracy(targets, probs, cluster):
-    pass
+    spec_tar = []
+    spec_probs = []
+    for t, p in zip(targets, probs):
+        if t in cluster:
+            spec_tar.append(t)
+            spec_probs.append(p)
+    return log_loss(spec_tar, spec_probs)
 
 if __name__ == '__main__':
     experiment = '5_test45_train22_740epochs'
