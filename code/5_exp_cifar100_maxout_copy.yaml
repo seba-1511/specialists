@@ -107,7 +107,7 @@
         weight_init: *wt_init0,
         nofm: 128,
         fshape: [8, 8],
-        activation: !obj:transfogdm.RectLin {},
+        activation: !obj:transforms.RectLin {},
         pad: 4,
       },
       !obj:layers.PoolingLayer {
@@ -132,7 +132,7 @@
         nofm: 192,
         fshape: [8, 8],
         weight_init: *wt_init0,
-        activation: !obj:transfogdm.RectLin {},
+        activation: !obj:transforms.RectLin {},
         pad: 3,
       },
       !obj:layers.PoolingLayer {
@@ -157,7 +157,7 @@
         nofm: 256,
         fshape: [5, 5],
         weight_init: *wt_init0,
-        activation: !obj:transfogdm.RectLin {},
+        activation: !obj:transforms.RectLin {},
         pad: 3,
       },
       !obj:layers.PoolingLayer {
@@ -181,7 +181,7 @@
         nout: 2048,
         lrule_init: *gdm,
         weight_init: *wt_init,
-        activation: !obj:transfogdm.RectLin {},
+        activation: !obj:transforms.RectLin {},
       },
       !obj:layers.DropOutLayer {
         name: do4,
@@ -192,7 +192,7 @@
         nout: 2048,
         lrule_init: *gdm,
         weight_init: *wt_init,
-        activation: !obj:transfogdm.RectLin {},
+        activation: !obj:transforms.RectLin {},
       },
       !obj:layers.DropOutLayer {
         name: do5,
@@ -203,12 +203,12 @@
         lrule_init: *gdm,
         weight_init: *wt_init,
         nout: 100,
-        activation: !obj:transfogdm.Softmax {},
+        activation: !obj:transforms.Softmax {},
       },
       &costlayer !obj:layers.CostLayer {
         name: cost,
         ref_layer: *datalayer,
-        cost: !obj:transfogdm.CrossEntropy {},
+        cost: !obj:transforms.CrossEntropy {},
       },
     ],
   },
