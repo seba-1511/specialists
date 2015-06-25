@@ -23,7 +23,7 @@
     sample_pct: 100,
   },
 
-#  predictions: ['train', 'test'],
+  predictions: ['train', 'test'],
 #  backend: !obj:backends.gen_backend {
 #        gpu: 'cudanet',
 #        datapar: True,
@@ -57,8 +57,8 @@
    lrule: &gdm {
     type: gradient_descent_momentum_weight_decay,
     lr_params: {
-      learning_rate: 0.001,
-      weight_decay: 0.0001,
+      learning_rate: 0.17,
+      weight_decay: 0.0005,
       schedule: {
           type: step,
           ratio: 0.1,
@@ -66,7 +66,7 @@
       },
       momentum_params: {
         type: linear_monotone,
-        coef: 0.1,
+        coef: 0.5,
       },
     },
   },
@@ -90,8 +90,8 @@
   # CNN model specification
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
-    serialized_path: './saved_models/5_rmsprop_original.prm',
-    num_epochs: 540,
+    serialized_path: './saved_models/5_trying_test45_train22.prm',
+    num_epochs: 740,
     batch_norm: True,
     batch_size: &bs 128,
     layers: [
@@ -103,11 +103,11 @@
       },
       !obj:layers.ConvLayer {
         name: layer1,
-        lrule_init: *rms,
+        lrule_init: *gdm,
         weight_init: *wt_init0,
         nofm: 128,
         fshape: [8, 8],
-        activation: !obj:transforms.RectLin {},
+        activation: !obj:transfogdm.RectLin {},
         pad: 4,
       },
       !obj:layers.PoolingLayer {
@@ -128,11 +128,11 @@
       },
        !obj:layers.ConvLayer {
         name: layer4,
-        lrule_init: *rms,
+        lrule_init: *gdm,
         nofm: 192,
         fshape: [8, 8],
         weight_init: *wt_init0,
-        activation: !obj:transforms.RectLin {},
+        activation: !obj:transfogdm.RectLin {},
         pad: 3,
       },
       !obj:layers.PoolingLayer {
@@ -153,11 +153,11 @@
       },
      !obj:layers.ConvLayer {
         name: layer7,
-        lrule_init: *rms,
+        lrule_init: *gdm,
         nofm: 256,
         fshape: [5, 5],
         weight_init: *wt_init0,
-        activation: !obj:transforms.RectLin {},
+        activation: !obj:transfogdm.RectLin {},
         pad: 3,
       },
       !obj:layers.PoolingLayer {
@@ -179,9 +179,9 @@
       !obj:layers.FCLayer {
         name: layer10,
         nout: 2048,
-        lrule_init: *rms,
+        lrule_init: *gdm,
         weight_init: *wt_init,
-        activation: !obj:transforms.RectLin {},
+        activation: !obj:transfogdm.RectLin {},
       },
       !obj:layers.DropOutLayer {
         name: do4,
@@ -190,9 +190,9 @@
       !obj:layers.FCLayer {
         name: layer11,
         nout: 2048,
-        lrule_init: *rms,
+        lrule_init: *gdm,
         weight_init: *wt_init,
-        activation: !obj:transforms.RectLin {},
+        activation: !obj:transfogdm.RectLin {},
       },
       !obj:layers.DropOutLayer {
         name: do5,
@@ -200,15 +200,15 @@
       },
       &lastlayer !obj:layers.FCLayer {
         name: output,
-        lrule_init: *rms,
+        lrule_init: *gdm,
         weight_init: *wt_init,
         nout: 100,
-        activation: !obj:transforms.Softmax {},
+        activation: !obj:transfogdm.Softmax {},
       },
       &costlayer !obj:layers.CostLayer {
         name: cost,
         ref_layer: *datalayer,
-        cost: !obj:transforms.CrossEntropy {},
+        cost: !obj:transfogdm.CrossEntropy {},
       },
     ],
   },
