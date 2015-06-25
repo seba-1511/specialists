@@ -42,11 +42,11 @@ def load_inferences(path, name):
 def load_spec_inferences(name, spec):
     path = CURR_DIR
     f = open(path + '/saved_experiments/' +
-             name + '/spec_' + spec + '/train-inference.pkl', 'rb')
+             name + '/spec_' + str(spec) + '/train-inference.pkl', 'rb')
     train = pk.load(f)
     f.close()
     f = open(path + '/saved_experiments/' +
-             name + '/spec_' + spec + '/test-inference.pkl', 'rb')
+             name + '/spec_' + str(spec) + '/test-inference.pkl', 'rb')
     test = pk.load(f)
     f.close()
     return (train, test)
@@ -55,12 +55,12 @@ def load_spec_inferences(name, spec):
 def load_spec_targets(name, spec):
     path = CURR_DIR
     f = open(path + '/saved_experiments/' +
-             name + '/spec_' + spec + '/train-targets.pkl', 'rb')
+             name + '/spec_' + str(spec) + '/train-targets.pkl', 'rb')
     train = pk.load(f)
     train = np.argmax(train, axis=1)
     f.close()
     f = open(path + '/saved_experiments/' +
-             name + '/spec_' + spec + '/test-targets.pkl', 'rb')
+             name + '/spec_' + str(spec) + '/test-targets.pkl', 'rb')
     test = pk.load(f)
     test = np.argmax(test, axis=1)
     f.close()
@@ -108,18 +108,20 @@ def spec_accuracy(targets, probs, cluster):
         if t in cluster:
             spec_tar.append(t)
             spec_probs.append(p)
-    return log_loss(spec_tar, spec_probs)
+    return accuracy_score(spec_tar, spec_probs)
 
 if __name__ == '__main__':
-    experiment = '5_test45_train22_740epochs'
-    train_probs, test_probs = load_inferences(name=experiment)
-    train_targets, test_targets = load_targets(name=experiment)
+    nb_clusters = 10
+    experiment = '9_gene45.22_10spec'
+    #experiment = '5_test45_train22_740epochs'
+    train_probs, test_probs = load_inferences(path=CURR_DIR, name=experiment)
+    train_targets, test_targets = load_targets(path=CURR_DIR, name=experiment)
     clusters = SpecialistDataset.cluster_classes(
         test_targets,
         test_probs,
-        cm=SpecialistDataset.cm_types['greedy'],
-        nb_clusters=10,
-        clustering=SpecialistDataset.clustering_methods['soft_sum_pred_cm']
+        cm=SpecialistDataset.cm_types['soft_sum_pred_cm'],
+        nb_clusters=nb_clusters,
+        clustering=SpecialistDataset.clustering_methods['greedy']
     )
     final_probs = np.zeros(np.shape(test_probs))
     print 'Generalist logloss: ', log_loss(test_targets, test_probs)
@@ -128,6 +130,7 @@ if __name__ == '__main__':
         spec_train_probs, spec_test_probs = load_spec_inferences(
             name=experiment, spec=i
         )
+        import pdb; pdb.set_trace()
         final_probs = merge_predictions(
             generalist=test_probs,
             specialist=spec_test_probs,
