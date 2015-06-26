@@ -174,11 +174,12 @@ def load_cifar100_train32_test50(path, experiment):
         batch_size=128,
         layers=layers,
     )
-    #backend = gen_backend()
-    #mlp.link()
-    #backend.par.init_model(mlp, backend)
-    #mlp.initialize(backend)
-    #name = os.path.expandvars(os.path.expanduser(name))
-    #params = deserialize(load_path=name)
-    #mlp.set_params(params)
+    #: Has to be cudanet, because of pad!=0 not implemented on CPU
+    backend = gen_backend(gpu='cudanet')
+    mlp.link()
+    backend.par.init_model(mlp, backend)
+    mlp.initialize(backend)
+    name = os.path.expandvars(os.path.expanduser(name))
+    params = deserialize(load_path=name)
+    mlp.set_params(params)
     return mlp
