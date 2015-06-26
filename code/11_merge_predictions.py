@@ -148,10 +148,7 @@ def merge_predictions_archives():
 
 
 def load_generalist_model(experiment):
-    f = open(CURR_DIR + '/saved_experiments/' + experiment + '/model.prm', 'rb')
-    res = pk.load(f)
-    f.close()
-    return res
+    return load_cifar100_train32_test50(CURR_DIR, experiment)
 
 
 def load_specialist_model(experiment, spec):

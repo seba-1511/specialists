@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 
 
+import os
 from neon.models import MLP
-from neon.backends.par import NoPar
+from neon.backends import gen_backend
+from neon.util.persist import deserialize
 from neon.optimizers import GradientDescentMomentumWeightDecay
 from neon.params import UniformValGen, GaussianValGen
 from neon.transforms import (
@@ -23,8 +25,9 @@ from neon.layers import (
 
 
 def load_cifar100_train32_test50(path, experiment):
-    name = path + '/saved_experiments/' + experiment + '/model.prm'
+    name = str(path + '/saved_experiments/' + experiment + '/model.prm')
     gdm = GradientDescentMomentumWeightDecay(
+        name='gdmwd',
         lr_params={
             'learning_rate': 0.17,
             'weight_decay': 0.0005,
@@ -35,9 +38,9 @@ def load_cifar100_train32_test50(path, experiment):
             },
             'momentum_params': {
                 'type': 'linear_monotone',
-                'coef': 0.5
-            }
-        }
+                'coef': 0.5,
+            },
+        },
     )
     wt_init0 = GaussianValGen(scale=0.01, bias_init=0.0)
     wt_init = UniformValGen(low=-0.1, high=0.1)
@@ -46,7 +49,7 @@ def load_cifar100_train32_test50(path, experiment):
         is_local=True,
         nofm=3,
         ofmshape=[32, 32],
-    ),
+    )
 
     layers = [
         datalayer,
@@ -165,10 +168,17 @@ def load_cifar100_train32_test50(path, experiment):
         ),
     ]
 
-    return MLP(
-        deserialize_path=name,
+    mlp = MLP(
         num_epochs=740,
         batch_norm=True,
         batch_size=128,
         layers=layers,
     )
+    #backend = gen_backend()
+    #mlp.link()
+    #backend.par.init_model(mlp, backend)
+    #mlp.initialize(backend)
+    #name = os.path.expandvars(os.path.expanduser(name))
+    #params = deserialize(load_path=name)
+    #mlp.set_params(params)
+    return mlp
