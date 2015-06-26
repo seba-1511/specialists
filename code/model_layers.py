@@ -4,6 +4,8 @@
 
 from neon.models import MLP
 from neon.backends.par import NoPar
+from neon.optimizers import GradientDescentMomentumWeightDecay
+from neon.params import UniformValGen, GaussianValGen
 from neon.transforms import (
     RectLin,
     Softmax,
@@ -20,11 +22,25 @@ from neon.layers import (
 )
 
 
-def load_cifar100_train32_test50():
-    name = 'maxout_copy_100.prm'
-    gdm = {}
-    wt_init0 = {}
-    wt_init = {}
+def load_cifar100_train32_test50(path, experiment):
+    name = path + '/saved_experiments/' + experiment + '/model.prm'
+    gdm = GradientDescentMomentumWeightDecay(
+        lr_params={
+            'learning_rate': 0.17,
+            'weight_decay': 0.0005,
+            'schedule': {
+                'type': 'step',
+                'ratio': 0.1,
+                'step_epochs': 50,
+            },
+            'momentum_params': {
+                'type': 'linear_monotone',
+                'coef': 0.5
+            }
+        }
+    )
+    wt_init0 = GaussianValGen(scale=0.01, bias_init=0.0)
+    wt_init = UniformValGen(low=-0.1, high=0.1)
     datalayer = DataLayer(
         name='d0',
         is_local=True,
@@ -126,7 +142,7 @@ def load_cifar100_train32_test50():
 
         FCLayer(
             name='layer11',
-            nout=1024,
+            nout=2048,
             lrule_init=gdm,
             weight_init=wt_init,
             activation=RectLin(),
@@ -150,9 +166,8 @@ def load_cifar100_train32_test50():
     ]
 
     return MLP(
-        serialized_path='./saved_models/' + name,
-        deserialize_path='./saved_models/' + name,
-        num_epochs=74,
+        deserialize_path=name,
+        num_epochs=740,
         batch_norm=True,
         batch_size=128,
         layers=layers,

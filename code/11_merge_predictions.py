@@ -4,6 +4,7 @@
 import os
 import cPickle as pk
 import numpy as np
+from model_layers import load_cifar100_train32_test50
 from neon.datasets import SpecialistDataset
 from sklearn.metrics import (
     accuracy_score,
@@ -110,10 +111,11 @@ def spec_accuracy(targets, probs, cluster):
             spec_probs.append(p)
     return accuracy_score(spec_tar, spec_probs)
 
-if __name__ == '__main__':
+
+def merge_predictions_archives():
     nb_clusters = 10
     experiment = '9_gene45.22_10spec'
-    #experiment = '5_test45_train22_740epochs'
+    # experiment = '5_test45_train22_740epochs'
     train_probs, test_probs = load_inferences(path=CURR_DIR, name=experiment)
     train_targets, test_targets = load_targets(path=CURR_DIR, name=experiment)
     clusters = SpecialistDataset.cluster_classes(
@@ -130,7 +132,6 @@ if __name__ == '__main__':
         spec_train_probs, spec_test_probs = load_spec_inferences(
             name=experiment, spec=i
         )
-        import pdb; pdb.set_trace()
         final_probs = merge_predictions(
             generalist=test_probs,
             specialist=spec_test_probs,
@@ -144,6 +145,20 @@ if __name__ == '__main__':
     print 'The final results for the whole system are: '
     print 'Logloss: ', log_loss(test_targets, final_probs)
     print 'Accuracy: ', accuracy_score(test_targets, np.argmax(final_probs, axis=1))
+
+
+def load_generalist_model(experiment):
+    f = open(CURR_DIR + '/saved_experiments/' + experiment + '/model.prm', 'rb')
+    res = pk.load(f)
+    f.close()
+    return res
+
+
+def load_specialist_model(experiment, spec):
+    pass
+
+if __name__ == '__main__':
+    experiment = '9_gene45.22_10spec'
 
 #: TODO:
 #:      * Ensure that the predictions for a specialist and a generalist are the same, in the same order. Otherwise merging them won't work. (From the code, it looks like the dataset will not shuffled. Test in practice)
