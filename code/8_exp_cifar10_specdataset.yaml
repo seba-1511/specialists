@@ -27,7 +27,7 @@
     inferences_path: '/home/ubuntu/specialists/code/',
     nb_clusters: 3,
     cluster: 0,
-    full_predictions: False,
+    full_predictions: True,
     confusion_matrix: 'soft_sum_pred_cm',
     clustering: 'greedy',
   },
@@ -72,8 +72,8 @@
   # CNN model specification
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
-    deserialized_path: './saved_models/maxout_copy.prm',
-    num_epochs: 74,
+    deserialized_path: '/home/ubuntu/specialists/code/saved_experiments/4_test22_train14_74epochs/model.prm',
+    num_epochs: 120,
     batch_norm: True,
     batch_size: &bs 128,
     layers: [
@@ -173,7 +173,7 @@
         name: output,
         lrule_init: *gdm,
         weight_init: *wt_init,
-        nout: 10,
+        nout: 3,
         activation: !obj:transforms.Softmax {},
       },
       &costlayer !obj:layers.CostLayer {

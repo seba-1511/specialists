@@ -63,7 +63,7 @@
   # CNN model specification
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
-    serialized_path: './saved_models/4_new_compilation.prm',
+    serialized_path: './saved_models/4_trying_improved.prm',
     num_epochs: 74,
     batch_norm: True,
     batch_size: &bs 128,
@@ -151,7 +151,7 @@
       },
       !obj:layers.FCLayer {
         name: layer10,
-        nout: 1024,
+        nout: 2048,
         lrule_init: *gdm,
         weight_init: *wt_init,
         activation: !obj:transforms.RectLin {},
