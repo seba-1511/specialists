@@ -4,8 +4,13 @@
 import os
 import cPickle as pk
 import numpy as np
-from model_layers import load_cifar100_train32_test50
-from neon.datasets import SpecialistDataset
+from model_layers import load_model
+from neon.backends import gen_backend
+from neon.datasets import (
+    SpecialistDataset,
+    CIFAR10,
+    CIFAR100,
+)
 from sklearn.metrics import (
     accuracy_score,
     log_loss,
@@ -113,6 +118,8 @@ def spec_accuracy(targets, probs, cluster):
 
 
 def merge_predictions_archives():
+    #: I believe that the predictions are shuffled, so you need to load them and
+    #:
     nb_clusters = 10
     experiment = '9_gene45.22_10spec'
     # experiment = '5_test45_train22_740epochs'
@@ -148,14 +155,55 @@ def merge_predictions_archives():
 
 
 def load_generalist_model(experiment):
-    return load_cifar100_train32_test50(CURR_DIR, experiment)
+    name = str(CURR_DIR + '/saved_experiments/' + experiment + '/model.prm')
+    return load_model(experiment, name)
 
 
 def load_specialist_model(experiment, spec):
-    pass
+    name = str(CURR_DIR + '/saved_experiments/' +
+               experiment + 'spec_' + str(spec) + '/model.prm')
+    return load_model(experiment, name)
+
+
+def get_spec_probs(spec, experiment, features):
+    specialist = load_specialist_model(experiment, spec)
+    specialist.set_train_mode(False)
+    return specialist.predict(features)
 
 if __name__ == '__main__':
+    nb_clusters = 10
     experiment = '9_gene45.22_10spec'
-
-#: TODO:
-#:      * Ensure that the predictions for a specialist and a generalist are the same, in the same order. Otherwise merging them won't work. (From the code, it looks like the dataset will not shuffled. Test in practice)
+    # mlp = load_generalist_model(experiment)
+    backend = gen_backend()
+    data = CIFAR100(repo_path='~/data', backend=backend)
+    data.load()
+    features = data.inputs['test']
+    targets = data.targets['test']
+    mlp.set_train_mode(False)
+    gene_probs = mlp.predict(features)
+    final_probs = np.zeros(np.shape(gene_probs))
+    print 'Generalist logloss: ', log_loss(targets, gene_probs)
+    print 'Generalist accuracy: ', accuracy_score(targets, np.argmax(gene_probs, axis=1))
+    #: TODO: Change to some validation set !
+    clusters = SpecialistDataset.cluster_classes(
+        targets,
+        gene_probs,
+        cm=SpecialistDataset.cm_types['soft_sum_pred_cm'],
+        nb_clusters=nb_clusters,
+        clustering=SpecialistDataset.clustering_methods['greedy']
+    )
+    for i, c in enumerate(clusters):
+        spec_probs = get_spec_probs(i, experiment, features)
+        final_probs = merge_predictions(
+            generalist=gene_probs,
+            specialist=spec_probs,
+            cluster=c,
+            final=final_probs,
+        )
+        print i, ': Spec logloss: ', spec_log_loss(targets, spec_probs, c)
+        print i, ': Spec accuracy: ', spec_accuracy(targets, np.argmax(spec_probs, axis=1), c)
+        print i, ': Final logloss: ', log_loss(targets, final_probs)
+        print i, ': Final accuracy:', accuracy_score(targets, np.argmax(final_probs, axis=1))
+    print 'The final results for the whole system are: '
+    print 'Logloss: ', log_loss(targets, final_probs)
+    print 'Accuracy: ', accuracy_score(targets, np.argmax(final_probs, axis=1))
