@@ -26,7 +26,7 @@
     experiment: '5_test45_train22_740epochs',
     inferences_path: '/home/ubuntu/specialists/code/',
     nb_clusters: 10,
-    cluster: 3,
+    cluster: 9,
     full_predictions: True,
     confusion_matrix: 'soft_sum_pred_cm',
     clustering: 'greedy',
@@ -190,7 +190,7 @@
         name: output,
         lrule_init: *gdm,
         weight_init: *wt_init,
-        nout: 12,
+        nout: 9,
         activation: !obj:transforms.Softmax {},
       },
       &costlayer !obj:layers.CostLayer {

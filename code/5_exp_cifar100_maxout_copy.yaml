@@ -18,7 +18,7 @@
 
 !obj:experiments.FitPredictErrorExperiment {
 
-  dataset: &ds !obj:datasets.CIFAR100 {
+  dataset: &ds !obj:datasets.CIFAR10 {
     repo_path: '~/data',
     sample_pct: 100,
   },
@@ -58,7 +58,7 @@
     type: gradient_descent_momentum_weight_decay,
     lr_params: {
       learning_rate: 0.17,
-      weight_decay: 0.0005,
+      weight_decay: 0.0004,
       schedule: {
           type: step,
           ratio: 0.1,
@@ -90,7 +90,7 @@
   # CNN model specification
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
-    serialized_path: './saved_models/5_trying_test45_train22.prm',
+    serialized_path: './saved_models/4_trying_test45_train22.prm',
     num_epochs: 740,
     batch_norm: True,
     batch_size: &bs 128,
@@ -202,7 +202,7 @@
         name: output,
         lrule_init: *gdm,
         weight_init: *wt_init,
-        nout: 100,
+        nout: 10,
         activation: !obj:transforms.Softmax {},
       },
       &costlayer !obj:layers.CostLayer {
