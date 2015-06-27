@@ -4,7 +4,7 @@
 import os
 import cPickle as pk
 import numpy as np
-from model_layers import load_cifar100_train32_test50
+from model_layers import load_model
 from neon.backends import gen_backend
 from neon.datasets import (
     SpecialistDataset,
@@ -155,11 +155,14 @@ def merge_predictions_archives():
 
 
 def load_generalist_model(experiment):
-    return load_cifar100_train32_test50(CURR_DIR, experiment)
+    name = str(CURR_DIR + '/saved_experiments/' + experiment + '/model.prm')
+    return load_model(experiment, name)
 
 
 def load_specialist_model(experiment, spec):
-    pass
+    name = str(CURR_DIR + '/saved_experiments/' +
+               experiment + 'spec_' + str(spec) + '/model.prm')
+    return load_model(experiment, name)
 
 
 def get_spec_probs(spec, experiment, features):
