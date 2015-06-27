@@ -30,13 +30,13 @@ A file to perform the clustering, and generate subset of datasets for specialist
 A slightly modified version of the maxout paper on CIFAR10. (Uses ReLU, Dropout, and an additional layer) It reaches 20% error in 74 epochs.
 
 #### 5_exp_cifar100_maxout_copy
-The network of 4, running on CIFAR100.
+An improved version of 4, on CIFAR100. It should be able to reach 45% test error in 740 epochs.
 
 #### 8_exp_cifar10_specdataset
-A simple network to test if the SpecialistDataset class works to load subsets of the whole dataset.
+Training specialists on CIFAR10, based on 4.
 
 #### 9_exp_cifar100_spec
-A sample experiment to train Specialists using SpecialistDataset on CIFAR100.
+Training specialists on CIFAR100, based on 5.
 
 #### 10_hyperopt_exp
 Experiement to optimize hyperparameters on 5 using spearmint.
