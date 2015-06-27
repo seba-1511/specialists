@@ -46,23 +46,23 @@
   lrule: &gdm {
     type: gradient_descent_momentum_weight_decay,
     lr_params: {
-      learning_rate: 0.17,
-      weight_decay: 0.0008,
+      learning_rate: 0.1,
+      weight_decay: 0.0001,
       schedule: {
           type: step,
-          ratio: 0.15,
-          step_epochs: 20,
+          ratio: 0.1,
+          step_epochs: 50,
       },
       momentum_params: {
         type: linear_monotone,
-        coef: 0.5,
+        coef: 0.9,
       },
     },
   },
   # CNN model specification
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
-    serialized_path: './saved_models/maxout_copy.prm',
+    #serialized_path: './saved_models/maxout_copy.prm',
     num_epochs: 74,
     batch_norm: True,
     batch_size: &bs 128,
@@ -160,20 +160,20 @@
         fshape: [1, 1],
         activation: !obj:transforms.RectLin {},
       },
-      !obj:layers.ConvLayer {
-        name: layer10,
-        lrule_init: *gdm,
-        weight_init: *gaussian,
-        nofm: 10,
-        fshape: [1, 1],
-        activation: !obj:transforms.RectLin {},
-      },
-      !obj:layers.PoolingLayer {
-        name: layer11,
-        op: 'avg',
-        fshape: [8, 8],
-        stride: 1,
-      },
+      #!obj:layers.ConvLayer {
+        #name: layer10,
+        #lrule_init: *gdm,
+        #weight_init: *gaussian,
+        #nofm: 10,
+        #fshape: [1, 1],
+        #activation: !obj:transforms.RectLin {},
+      #},
+      #!obj:layers.PoolingLayer {
+        #name: layer11,
+        #op: 'avg',
+        #fshape: [8, 8],
+        #stride: 1,
+      #},
       &lastlayer !obj:layers.FCLayer {
         name: output,
         lrule_init: *gdm,

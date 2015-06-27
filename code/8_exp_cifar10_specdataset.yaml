@@ -27,7 +27,7 @@
     inferences_path: '/home/ubuntu/specialists/code/',
     nb_clusters: 3,
     cluster: 0,
-    full_predictions: True,
+    full_predictions: False,
     confusion_matrix: 'soft_sum_pred_cm',
     clustering: 'greedy',
   },
@@ -56,8 +56,8 @@
   lrule: &gdm {
     type: gradient_descent_momentum_weight_decay,
     lr_params: {
-      learning_rate: 0.17,
-      weight_decay: 0.0008,
+      learning_rate: 0.017,
+      weight_decay: 0.0055,
       schedule: {
           type: step,
           ratio: 0.15,
@@ -73,7 +73,7 @@
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
     deserialized_path: '/home/ubuntu/specialists/code/saved_experiments/4_test22_train14_74epochs/model.prm',
-    num_epochs: 120,
+    num_epochs: 110,
     batch_norm: True,
     batch_size: &bs 128,
     layers: [

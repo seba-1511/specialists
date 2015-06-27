@@ -75,7 +75,7 @@
     type: rmsprop,
     lr_params: {
       learning_rate: 0.17,
-      weight_decay: 0.0005,
+      weight_decay: 0.00005,
       schedule: {
           type: step,
           ratio: 0.1,
