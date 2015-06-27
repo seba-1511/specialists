@@ -26,26 +26,11 @@ Definition of a specialist experiment, to include in neon/neon/experiments/
 #### specialist
 A file to perform the clustering, and generate subset of datasets for specialists to learn. **It has to be copied in neon/neon/datasets** in order to be used. (and neon must be installed in development mode.)
 
-#### 0_mnist_exp
-A benchmark for MNIST.
-
-#### 1_exp_cifar10
-Testing a network on CIFAR100.
-
-#### 2_exp_cifar100
-The copy of 1 but executed on CIFAR100
-
-#### 3_exp_cifar100b
-The network of 2, improved and slightly tuned. (bad results)
-
 #### 4_exp_cifar10_maxout_copy
 A slightly modified version of the maxout paper on CIFAR10. (Uses ReLU, Dropout, and an additional layer) It reaches 20% error in 74 epochs.
 
 #### 5_exp_cifar100_maxout_copy
 The network of 4, running on CIFAR100.
-
-#### 7_exp_cifar100_kevin
-A dirty (Non-working) copy of “kevinet” as shown in the model file at: https://gist.github.com/kevinlin311tw/266d4150a1db5810398e
 
 #### 8_exp_cifar10_specdataset
 A simple network to test if the SpecialistDataset class works to load subsets of the whole dataset.
@@ -54,7 +39,7 @@ A simple network to test if the SpecialistDataset class works to load subsets of
 A sample experiment to train Specialists using SpecialistDataset on CIFAR100.
 
 #### 10_hyperopt_exp
-Experiement to optimize hyper parameters using spearmint.
+Experiement to optimize hyperparameters on 5 using spearmint.
 
 #### 11_merge_predictions
 Script allowing to merge the generalist and specialist predictions for a given experiment.
