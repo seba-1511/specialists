@@ -150,16 +150,16 @@ def load_cifar10_test22_train14(path):
             name='do4',
             keep=0.3,
         ),
-        #FCLayer(
-            #name='layer11',
-            #nout=2048,
-            #lrule_init=gdm,
-            #weight_init=wt_init,
-            #activation=RectLin(),
+        # FCLayer(
+            # name='layer11',
+            # nout=2048,
+            # lrule_init=gdm,
+            # weight_init=wt_init,
+            # activation=RectLin(),
         #),
-        #DropOutLayer(
-            #name='do5',
-            #keep=0.32,
+        # DropOutLayer(
+            # name='do5',
+            # keep=0.32,
         #),
         FCLayer(
             name='output',
