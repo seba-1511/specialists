@@ -172,15 +172,30 @@ def get_spec_probs(spec, experiment, features):
 
 if __name__ == '__main__':
     nb_clusters = 10
-    experiment = '9_gene45.22_10spec'
-    # mlp = load_generalist_model(experiment)
-    backend = gen_backend()
+    experiment = '4_test22_train14_74epochs'
+    #experiment = '9_gene45.22_10spec'
+    mlp = load_generalist_model(experiment)
+    backend = gen_backend(gpu='cudanet', device_id=0)
+    backend.actual_batch_size = 128
     data = CIFAR100(repo_path='~/data', backend=backend)
     data.load()
     features = data.inputs['test']
     targets = data.targets['test']
+    features = [f.asnumpyarray().transpose().tolist() for f in features]
+    targets = [t.asnumpyarray().transpose().tolist() for t in targets]
+    temp = []
+    for batch in features:
+        for f in batch:
+            temp.append(f)
+    features = temp
+    temp = []
+    for batch in targets:
+        for t in batch:
+            temp.append(t)
+    targets = temp
     mlp.set_train_mode(False)
-    gene_probs = mlp.predict(features)
+    gene_probs = mlp.predict_fullset(data, 'test')
+    import pdb; pdb.set_trace()
     final_probs = np.zeros(np.shape(gene_probs))
     print 'Generalist logloss: ', log_loss(targets, gene_probs)
     print 'Generalist accuracy: ', accuracy_score(targets, np.argmax(gene_probs, axis=1))
