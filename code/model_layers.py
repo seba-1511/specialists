@@ -34,9 +34,9 @@ def load_model(experiment, path):
 
 
 def load_cifar10_test22_train14(path):
-    gdm = GradientDescentMomentumWeightDecay(
-        name='gdmwd',
-        lr_params={
+    gdm = {
+        'type': 'gradient_descent_momentum_weight_decay',
+        'lr_params': {
             'learning_rate': 0.17,
             'weight_decay': 0.0008,
             'schedule': {
@@ -49,7 +49,7 @@ def load_cifar10_test22_train14(path):
                 'coef': 0.5,
             },
         },
-    )
+    }
     wt_init0 = GaussianValGen(scale=0.01, bias_init=0.0)
     wt_init = UniformValGen(low=-0.1, high=0.1)
     datalayer = DataLayer(
@@ -182,7 +182,7 @@ def load_cifar10_test22_train14(path):
         layers=layers,
     )
     #: Has to be cudanet, because of pad!=0 not implemented on CPU
-    backend = gen_backend(gpu='cudanet')
+    backend = gen_backend(gpu='cudanet', device_id=0)
     mlp.link()
     backend.par.init_model(mlp, backend)
     mlp.initialize(backend)
