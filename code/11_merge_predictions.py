@@ -166,13 +166,13 @@ def load_specialist_model(experiment, spec, backend):
     return load_model(experiment, name, backend)
 
 
-def get_spec_probs(spec, experiment, features, backend):
+def get_spec_probs(spec, experiment, dataset, backend):
     specialist = load_specialist_model(experiment, spec, backend)
     specialist.set_train_mode(False)
-    return specialist.predict(features)
+    return specialist.predict_fullset(dataset, 'test')[0].asnumpyarray().transpose()
 
 if __name__ == '__main__':
-    nb_clusters = 10
+    nb_clusters = 3
     experiment = '4_test22_train14_74epochs'
     #experiment = '9_gene45.22_10spec'
     par = NoPar()
@@ -180,28 +180,18 @@ if __name__ == '__main__':
     par.associate(backend)
     mlp = load_generalist_model(experiment, backend)
     backend.actual_batch_size = mlp.batch_size
-    data = CIFAR100(repo_path='~/data', backend=backend)
-    data.load()
-    #features = data.inputs['test']
-    #targets = data.targets['test']
-    #features = [f.asnumpyarray().transpose().tolist() for f in features]
-    #targets = [t.asnumpyarray().transpose().tolist() for t in targets]
-    #temp = []
-    #for batch in features:
-        #for f in batch:
-            #temp.append(f)
-    #features = temp
-    #temp = []
-    #for batch in targets:
-        #for t in batch:
-            #temp.append(t)
-    #targets = temp
+    data = CIFAR10(repo_path='~/data', backend=backend)
+    data.backend = backend
+    data.set_batch_size(mlp.batch_size)
+    data.load(backend=backend)
     mlp.set_train_mode(False)
-    import pdb; pdb.set_trace()
-    gene_probs = mlp.predict_fullset(data, 'test')
+    gene_probs, targets = mlp.predict_fullset(data, 'test')
+    targets = np.argmax(targets.asnumpyarray().transpose(), axis=1)
+    gene_probs = gene_probs.asnumpyarray().transpose()
     final_probs = np.zeros(np.shape(gene_probs))
     print 'Generalist logloss: ', log_loss(targets, gene_probs)
     print 'Generalist accuracy: ', accuracy_score(targets, np.argmax(gene_probs, axis=1))
+    import pdb; pdb.set_trace()
     #: TODO: Change to some validation set !
     clusters = SpecialistDataset.cluster_classes(
         targets,
@@ -211,7 +201,7 @@ if __name__ == '__main__':
         clustering=SpecialistDataset.clustering_methods['greedy']
     )
     for i, c in enumerate(clusters):
-        spec_probs = get_spec_probs(i, experiment, features, backend)
+        spec_probs = get_spec_probs(i, experiment, data, backend)
         final_probs = merge_predictions(
             generalist=gene_probs,
             specialist=spec_probs,
