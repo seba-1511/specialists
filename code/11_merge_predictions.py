@@ -155,30 +155,36 @@ def merge_predictions_archives():
     print 'Accuracy: ', accuracy_score(test_targets, np.argmax(final_probs, axis=1))
 
 
-def load_generalist_model(experiment, backend):
+def load_generalist_model(experiment, backend, nb_classes):
     name = str(CURR_DIR + '/saved_experiments/' + experiment + '/model.prm')
-    return load_model(experiment, name, backend)
+    return load_model(experiment, name, backend, nb_classes)
 
 
-def load_specialist_model(experiment, spec, backend):
+def load_specialist_model(experiment, spec, backend, nb_classes):
     name = str(CURR_DIR + '/saved_experiments/' +
                experiment + '/spec_' + str(spec) + '/model.prm')
-    return load_model(experiment, name, backend)
+    return load_model(experiment, name, backend, nb_classes)
 
 
-def get_spec_probs(spec, experiment, dataset, backend):
-    specialist = load_specialist_model(experiment, spec, backend)
+def get_spec_probs(spec, experiment, dataset, backend, nb_classes):
+    specialist = load_specialist_model(experiment, spec, backend, nb_classes)
     specialist.set_train_mode(False)
-    return specialist.predict_fullset(dataset, 'test')[0].asnumpyarray().transpose()
+    preds = [x[0].asnumpyarray().transpose() for x in specialist.predict_generator(dataset, 'test')]
+    res = []
+    for pred in preds:
+        for p in pred:
+            res.append(p)
+    return res
 
 if __name__ == '__main__':
+    nb_classes = 10
     nb_clusters = 3
     experiment = '4_test22_train14_74epochs'
     #experiment = '9_gene45.22_10spec'
     par = NoPar()
     backend = gen_backend(gpu='cudanet', device_id=0)
     par.associate(backend)
-    mlp = load_generalist_model(experiment, backend)
+    mlp = load_generalist_model(experiment, backend, nb_classes)
     backend.actual_batch_size = mlp.batch_size
     data = CIFAR10(repo_path='~/data', backend=backend)
     data.backend = backend
@@ -191,7 +197,6 @@ if __name__ == '__main__':
     final_probs = np.zeros(np.shape(gene_probs))
     print 'Generalist logloss: ', log_loss(targets, gene_probs)
     print 'Generalist accuracy: ', accuracy_score(targets, np.argmax(gene_probs, axis=1))
-    import pdb; pdb.set_trace()
     #: TODO: Change to some validation set !
     clusters = SpecialistDataset.cluster_classes(
         targets,
@@ -201,7 +206,7 @@ if __name__ == '__main__':
         clustering=SpecialistDataset.clustering_methods['greedy']
     )
     for i, c in enumerate(clusters):
-        spec_probs = get_spec_probs(i, experiment, data, backend)
+        spec_probs = get_spec_probs(i, experiment, data, backend, len(c))
         final_probs = merge_predictions(
             generalist=gene_probs,
             specialist=spec_probs,
