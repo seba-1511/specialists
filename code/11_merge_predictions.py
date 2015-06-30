@@ -6,6 +6,7 @@ import cPickle as pk
 import numpy as np
 from model_layers import load_model
 from neon.backends import gen_backend
+from neon.backends.par import NoPar
 from neon.datasets import (
     SpecialistDataset,
     CIFAR10,
@@ -154,19 +155,19 @@ def merge_predictions_archives():
     print 'Accuracy: ', accuracy_score(test_targets, np.argmax(final_probs, axis=1))
 
 
-def load_generalist_model(experiment):
+def load_generalist_model(experiment, backend):
     name = str(CURR_DIR + '/saved_experiments/' + experiment + '/model.prm')
-    return load_model(experiment, name)
+    return load_model(experiment, name, backend)
 
 
-def load_specialist_model(experiment, spec):
+def load_specialist_model(experiment, spec, backend):
     name = str(CURR_DIR + '/saved_experiments/' +
-               experiment + 'spec_' + str(spec) + '/model.prm')
-    return load_model(experiment, name)
+               experiment + '/spec_' + str(spec) + '/model.prm')
+    return load_model(experiment, name, backend)
 
 
-def get_spec_probs(spec, experiment, features):
-    specialist = load_specialist_model(experiment, spec)
+def get_spec_probs(spec, experiment, features, backend):
+    specialist = load_specialist_model(experiment, spec, backend)
     specialist.set_train_mode(False)
     return specialist.predict(features)
 
@@ -174,28 +175,30 @@ if __name__ == '__main__':
     nb_clusters = 10
     experiment = '4_test22_train14_74epochs'
     #experiment = '9_gene45.22_10spec'
-    mlp = load_generalist_model(experiment)
+    par = NoPar()
     backend = gen_backend(gpu='cudanet', device_id=0)
-    backend.actual_batch_size = 128
+    par.associate(backend)
+    mlp = load_generalist_model(experiment, backend)
+    backend.actual_batch_size = mlp.batch_size
     data = CIFAR100(repo_path='~/data', backend=backend)
     data.load()
-    features = data.inputs['test']
-    targets = data.targets['test']
-    features = [f.asnumpyarray().transpose().tolist() for f in features]
-    targets = [t.asnumpyarray().transpose().tolist() for t in targets]
-    temp = []
-    for batch in features:
-        for f in batch:
-            temp.append(f)
-    features = temp
-    temp = []
-    for batch in targets:
-        for t in batch:
-            temp.append(t)
-    targets = temp
+    #features = data.inputs['test']
+    #targets = data.targets['test']
+    #features = [f.asnumpyarray().transpose().tolist() for f in features]
+    #targets = [t.asnumpyarray().transpose().tolist() for t in targets]
+    #temp = []
+    #for batch in features:
+        #for f in batch:
+            #temp.append(f)
+    #features = temp
+    #temp = []
+    #for batch in targets:
+        #for t in batch:
+            #temp.append(t)
+    #targets = temp
     mlp.set_train_mode(False)
-    gene_probs = mlp.predict_fullset(data, 'test')
     import pdb; pdb.set_trace()
+    gene_probs = mlp.predict_fullset(data, 'test')
     final_probs = np.zeros(np.shape(gene_probs))
     print 'Generalist logloss: ', log_loss(targets, gene_probs)
     print 'Generalist accuracy: ', accuracy_score(targets, np.argmax(gene_probs, axis=1))
@@ -208,7 +211,7 @@ if __name__ == '__main__':
         clustering=SpecialistDataset.clustering_methods['greedy']
     )
     for i, c in enumerate(clusters):
-        spec_probs = get_spec_probs(i, experiment, features)
+        spec_probs = get_spec_probs(i, experiment, features, backend)
         final_probs = merge_predictions(
             generalist=gene_probs,
             specialist=spec_probs,
