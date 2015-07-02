@@ -169,6 +169,7 @@ def load_specialist_model(experiment, spec, backend, nb_classes):
 def get_spec_probs(spec, experiment, dataset, backend, nb_classes):
     specialist = load_specialist_model(experiment, spec, backend, nb_classes)
     specialist.set_train_mode(False)
+    import pdb; pdb.set_trace()
     preds = [x[0].asnumpyarray().transpose() for x in specialist.predict_generator(dataset, 'test')]
     res = []
     for pred in preds:
@@ -191,9 +192,20 @@ if __name__ == '__main__':
     data.set_batch_size(mlp.batch_size)
     data.load(backend=backend)
     mlp.set_train_mode(False)
-    gene_probs, targets = mlp.predict_fullset(data, 'test')
-    targets = np.argmax(targets.asnumpyarray().transpose(), axis=1)
-    gene_probs = gene_probs.asnumpyarray().transpose()
+    temp0 = []
+    temp1 = []
+    gene_probs = mlp.predict_generator(data, 'test')
+    for pred, tar in gene_probs:
+        pred = pred.asnumpyarray().transpose()
+        tar = np.argmax(tar.asnumpyarray().transpose(), axis=1)
+        print 'temp log', log_loss(tar, pred)
+        temp0 += pred.tolist()
+        temp1 += tar.tolist()
+    gene_probs, targets = temp0, temp1
+    #gene_probs, targets = mlp.predict_fullset(data, 'test')
+    #targets = np.argmax(targets, axis=1)
+    import pdb; pdb.set_trace()
+    #gene_probs = gene_probs.asnumpyarray().transpose()
     final_probs = np.zeros(np.shape(gene_probs))
     print 'Generalist logloss: ', log_loss(targets, gene_probs)
     print 'Generalist accuracy: ', accuracy_score(targets, np.argmax(gene_probs, axis=1))
