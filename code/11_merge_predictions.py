@@ -192,27 +192,24 @@ if __name__ == '__main__':
     data.set_batch_size(mlp.batch_size)
     data.load(backend=backend)
     mlp.set_train_mode(False)
-    temp0 = []
-    temp1 = []
+    temp = []
+    targets = []
     gene_probs = mlp.predict_generator(data, 'test')
     for pred, tar in gene_probs:
         pred = pred.asnumpyarray().transpose()
         tar = np.argmax(tar.asnumpyarray().transpose(), axis=1)
-        print 'temp log', log_loss(tar, pred)
-        temp0 += pred.tolist()
-        temp1 += tar.tolist()
-    gene_probs, targets = temp0, temp1
-    #gene_probs, targets = mlp.predict_fullset(data, 'test')
-    #targets = np.argmax(targets, axis=1)
-    import pdb; pdb.set_trace()
-    #gene_probs = gene_probs.asnumpyarray().transpose()
+        temp += pred.tolist()
+        targets += tar.tolist()
+    gene_probs = np.array(temp)
+    targets = np.array(targets)
     final_probs = np.zeros(np.shape(gene_probs))
     print 'Generalist logloss: ', log_loss(targets, gene_probs)
     print 'Generalist accuracy: ', accuracy_score(targets, np.argmax(gene_probs, axis=1))
+    import pdb; pdb.set_trace()
     #: TODO: Change to some validation set !
     clusters = SpecialistDataset.cluster_classes(
-        targets,
-        gene_probs,
+        targets=targets,
+        probs=gene_probs,
         cm=SpecialistDataset.cm_types['soft_sum_pred_cm'],
         nb_clusters=nb_clusters,
         clustering=SpecialistDataset.clustering_methods['greedy']
