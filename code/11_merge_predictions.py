@@ -229,8 +229,8 @@ if __name__ == '__main__':
             cluster=c,
             final=final_probs,
         )
-        print i, ': Spec logloss: ', spec_log_loss(spec_targets, spec_probs, c)
-        print i, ': Spec accuracy: ', spec_accuracy(spec_targets, np.argmax(spec_probs, axis=1), c)
+        print i, ': Spec logloss: ', spec_log_loss(targets, spec_probs, c)
+        print i, ': Spec accuracy: ', spec_accuracy(targets, np.argmax(spec_probs, axis=1), c)
         print i, ': Final logloss: ', log_loss(targets, final_probs)
         print i, ': Final accuracy:', accuracy_score(targets, np.argmax(final_probs, axis=1))
     print 'The final results for the whole system are: '
