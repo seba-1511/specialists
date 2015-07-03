@@ -4,7 +4,6 @@
 
 import os
 from neon.models import MLP
-from neon.backends import gen_backend
 from neon.util.persist import deserialize
 from neon.params import UniformValGen, GaussianValGen
 from neon.transforms import (
@@ -23,13 +22,13 @@ from neon.layers import (
 )
 
 
-def load_model(experiment, path, backend):
+def load_model(experiment, path, backend, nb_classes):
     loaders = {
         '9_gene45.22_10spec': load_cifar100_train32_test50,
         '5_test45_train22_740epochs': load_cifar100_train32_test50,
         '4_test22_train14_74epochs': load_cifar10_test22_train14,
     }
-    mlp = loaders[experiment](path)
+    mlp = loaders[experiment](path, nb_classes)
     mlp.link()
     backend.par.init_model(mlp, backend)
     mlp.initialize(backend)
@@ -39,7 +38,7 @@ def load_model(experiment, path, backend):
     return mlp
 
 
-def load_cifar10_test22_train14(path):
+def load_cifar10_test22_train14(path, nout):
     gdm = {
         'type': 'gradient_descent_momentum_weight_decay',
         'lr_params': {
@@ -171,7 +170,7 @@ def load_cifar10_test22_train14(path):
             name='output',
             lrule_init=gdm,
             weight_init=wt_init,
-            nout=10,
+            nout=nout,
             activation=Softmax(),
         ),
         CostLayer(
@@ -190,7 +189,7 @@ def load_cifar10_test22_train14(path):
     return mlp
 
 
-def load_cifar100_train32_test50(path):
+def load_cifar100_train32_test50(path, nout):
     gdm = {
         'type': 'gradient_descent_momentum_weight_decay',
         'lr_params': {
@@ -323,7 +322,7 @@ def load_cifar100_train32_test50(path):
             name='output',
             lrule_init=gdm,
             weight_init=wt_init,
-            nout=100,
+            nout=nout,
             activation=Softmax(),
         ),
         CostLayer(
