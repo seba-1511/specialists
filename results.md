@@ -10,3 +10,10 @@
 * Unweighted merging: logloss 0.6593994, accuracy 0.794070
 * Weighted merging: (np.max(g)) logloss 0.68704, accuracy 0.79537
     
+### 2 clusters, soft_sum_pred_cm, overlap greedy clustering
+(Also on the test set, not the validation set.)
+* Generalist: logloss: 0.68272, accuracy: 0.772435
+* spec logloss: ? / ? 
+* spec accuracy: ? / ? 
+* Unweighted merging: logloss ?, accuracy ?
+* Weighted merging: (np.max(g)) logloss ?, accuracy ?
