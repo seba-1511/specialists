@@ -82,7 +82,7 @@ def merge_predictions(generalist, specialist, cluster, final):
     n_classes = len(generalist[0])
     for i, g in enumerate(generalist):
         if np.argmax(g) in cluster:
-            s = g * 0
+            s = g
             for j, val in enumerate(specialist[i]):
                 s[cluster[j]] += val
             s /= sum(s)
@@ -94,9 +94,11 @@ def merge_predictions_weighted(generalist, specialist, cluster, final):
     n_classes = len(generalist[0])
     for i, g in enumerate(generalist):
         if np.argmax(g) in cluster:
-            s = np.argmax(specialist[i])
-            s = to_one_hot(cluster[s], n_classes)
-            final[i] += np.max(g) * s
+            s = g * np.max(g)
+            for j, val in enumerate(specialist[i]):
+                s[cluster[j]] += val
+            s /= sum(s)
+            final[i] += s
     return final
 
 
@@ -221,14 +223,14 @@ if __name__ == '__main__':
     )
     for i, c in enumerate(clusters):
         spec_probs, spec_targets = get_spec_probs(i, experiment, data, backend, len(c))
-        final_probs = merge_predictions(
+        final_probs = merge_predictions_weighted(
             generalist=gene_probs,
             specialist=spec_probs,
             cluster=c,
             final=final_probs,
         )
-        print i, ': Spec logloss: ', spec_log_loss(spec_targets, spec_probs, c)
-        print i, ': Spec accuracy: ', spec_accuracy(spec_targets, np.argmax(spec_probs, axis=1), c)
+        print i, ': Spec logloss: ', spec_log_loss(targets, spec_probs, c)
+        print i, ': Spec accuracy: ', spec_accuracy(targets, np.argmax(spec_probs, axis=1), c)
         print i, ': Final logloss: ', log_loss(targets, final_probs)
         print i, ': Final accuracy:', accuracy_score(targets, np.argmax(final_probs, axis=1))
     print 'The final results for the whole system are: '
