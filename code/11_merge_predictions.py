@@ -82,8 +82,10 @@ def merge_predictions(generalist, specialist, cluster, final):
     n_classes = len(generalist[0])
     for i, g in enumerate(generalist):
         if np.argmax(g) in cluster:
-            s = np.argmax(specialist[i])
-            s = to_one_hot(cluster[s], n_classes)
+            s = g * 0
+            for j, val in enumerate(specialist[i]):
+                s[cluster[j]] += val
+            s /= sum(s)
             final[i] += s
     return final
 
@@ -169,13 +171,17 @@ def load_specialist_model(experiment, spec, backend, nb_classes):
 def get_spec_probs(spec, experiment, dataset, backend, nb_classes):
     specialist = load_specialist_model(experiment, spec, backend, nb_classes)
     specialist.set_train_mode(False)
-    import pdb; pdb.set_trace()
-    preds = [x[0].asnumpyarray().transpose() for x in specialist.predict_generator(dataset, 'test')]
-    res = []
-    for pred in preds:
-        for p in pred:
-            res.append(p)
-    return res
+    temp = []
+    targets = []
+    gene_probs = specialist.predict_generator(data, 'test')
+    for pred, tar in gene_probs:
+        pred = pred.asnumpyarray().transpose()
+        tar = np.argmax(tar.asnumpyarray().transpose(), axis=1)
+        temp += pred.tolist()
+        targets += tar.tolist()
+    gene_probs = np.array(temp)
+    targets = np.array(targets)
+    return gene_probs, targets
 
 if __name__ == '__main__':
     nb_classes = 10
@@ -205,7 +211,6 @@ if __name__ == '__main__':
     final_probs = np.zeros(np.shape(gene_probs))
     print 'Generalist logloss: ', log_loss(targets, gene_probs)
     print 'Generalist accuracy: ', accuracy_score(targets, np.argmax(gene_probs, axis=1))
-    import pdb; pdb.set_trace()
     #: TODO: Change to some validation set !
     clusters = SpecialistDataset.cluster_classes(
         targets=targets,
@@ -215,17 +220,18 @@ if __name__ == '__main__':
         clustering=SpecialistDataset.clustering_methods['greedy']
     )
     for i, c in enumerate(clusters):
-        spec_probs = get_spec_probs(i, experiment, data, backend, len(c))
+        spec_probs, spec_targets = get_spec_probs(i, experiment, data, backend, len(c))
         final_probs = merge_predictions(
             generalist=gene_probs,
             specialist=spec_probs,
             cluster=c,
             final=final_probs,
         )
-        print i, ': Spec logloss: ', spec_log_loss(targets, spec_probs, c)
-        print i, ': Spec accuracy: ', spec_accuracy(targets, np.argmax(spec_probs, axis=1), c)
+        print i, ': Spec logloss: ', spec_log_loss(spec_targets, spec_probs, c)
+        print i, ': Spec accuracy: ', spec_accuracy(spec_targets, np.argmax(spec_probs, axis=1), c)
         print i, ': Final logloss: ', log_loss(targets, final_probs)
         print i, ': Final accuracy:', accuracy_score(targets, np.argmax(final_probs, axis=1))
     print 'The final results for the whole system are: '
     print 'Logloss: ', log_loss(targets, final_probs)
     print 'Accuracy: ', accuracy_score(targets, np.argmax(final_probs, axis=1))
+    import pdb; pdb.set_trace()
