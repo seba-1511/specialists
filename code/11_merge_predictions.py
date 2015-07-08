@@ -188,7 +188,7 @@ def get_spec_probs(spec, experiment, dataset, backend, nb_classes):
 if __name__ == '__main__':
     nb_classes = 10
     nb_clusters = 3
-    experiment = '4_test22_train14_74epochs'
+    experiment = '4_test22_train14_74epochs_2clusters'
     #experiment = '9_gene45.22_10spec'
     par = NoPar()
     backend = gen_backend(gpu='cudanet', device_id=0)
@@ -219,7 +219,7 @@ if __name__ == '__main__':
         probs=gene_probs,
         cm=SpecialistDataset.cm_types['soft_sum_pred_cm'],
         nb_clusters=nb_clusters,
-        clustering=SpecialistDataset.clustering_methods['greedy']
+        clustering=SpecialistDataset.clustering_methods['overlap_greedy']
     )
     for i, c in enumerate(clusters):
         spec_probs, spec_targets = get_spec_probs(i, experiment, data, backend, len(c))

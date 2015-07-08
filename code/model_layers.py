@@ -26,7 +26,8 @@ def load_model(experiment, path, backend, nb_classes):
     loaders = {
         '9_gene45.22_10spec': load_cifar100_train32_test50,
         '5_test45_train22_740epochs': load_cifar100_train32_test50,
-        '4_test22_train14_74epochs': load_cifar10_test22_train14,
+        '4_test22_train14_74epochs_3clusters': load_cifar10_test22_train14,
+        '4_test22_train14_74epochs_2clusters': load_cifar10_test22_train14,
     }
     mlp = loaders[experiment](path, nb_classes)
     mlp.link()
