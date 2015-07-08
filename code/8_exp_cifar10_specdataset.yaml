@@ -26,10 +26,10 @@
     experiment: '4_test22_train14_74epochs_2clusters',
     inferences_path: '/home/ubuntu/specialists/code/',
     nb_clusters: 2,
-    cluster: &cluster 0,
+    cluster: &cluster 1,
     full_predictions: False,
     confusion_matrix: 'soft_sum_pred_cm',
-    clustering: 'greedy',
+    clustering: 'overlap_greedy',
   },
 
   predictions: ['train', 'test'],
@@ -74,7 +74,7 @@
   model: !obj:models.MLP {
     serialized_path: '/home/ubuntu/specialists/code/saved_experiments/4_test22_train14_74epochs_2clusters/temp/model.prm',
     deserialized_path: '/home/ubuntu/specialists/code/saved_experiments/4_test22_train14_74epochs_2clusters/model.prm',
-    num_epochs: 90,
+    num_epochs: 94,
     batch_norm: True,
     batch_size: &bs 128,
     layers: [
@@ -174,7 +174,7 @@
         name: output,
         lrule_init: *gdm,
         weight_init: *wt_init,
-        nout: 2,
+        nout: 5,
         activation: !obj:transforms.Softmax {},
       },
       &costlayer !obj:layers.CostLayer {

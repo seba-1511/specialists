@@ -21,10 +21,9 @@
   dataset: &ds !obj:datasets.CIFAR10 {
     repo_path: '~/data',
     sample_pct: 100,
-    backend_type: &bt np.float16,
   },
 
-  predictions: ['train', 'test'],
+#  predictions: ['train', 'test'],
 #  backend: !obj:backends.gen_backend {
 #        gpu: 'cudanet',
 #        datapar: True,
@@ -34,14 +33,14 @@
     train: [
         !obj:metrics.MisclassPercentage {error_rank: 1},
         !obj:metrics.MisclassPercentage {error_rank: 5},
-        !obj:metrics.MisclassPercentage {error_rank: 10},
-        !obj:metrics.MisclassPercentage {error_rank: 15},
+#        !obj:metrics.MisclassPercentage {error_rank: 10},
+#        !obj:metrics.MisclassPercentage {error_rank: 15},
     ],
     test: [
         !obj:metrics.MisclassPercentage {error_rank: 1},
         !obj:metrics.MisclassPercentage {error_rank: 5},
-        !obj:metrics.MisclassPercentage {error_rank: 10},
-        !obj:metrics.MisclassPercentage {error_rank: 15},
+#        !obj:metrics.MisclassPercentage {error_rank: 10},
+#        !obj:metrics.MisclassPercentage {error_rank: 15},
     ],
   },
 
@@ -59,7 +58,7 @@
     type: gradient_descent_momentum_weight_decay,
     lr_params: {
       learning_rate: 0.17,
-      weight_decay: 0.0004,
+      weight_decay: 0.00056,
       schedule: {
           type: step,
           ratio: 0.1,
@@ -92,7 +91,7 @@
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
     serialized_path: './saved_models/4_trying_test45_train22.prm',
-    num_epochs: 740,
+    num_epochs: 350,
     batch_norm: True,
     batch_size: &bs 128,
     layers: [
@@ -110,26 +109,22 @@
         fshape: [8, 8],
         activation: !obj:transforms.RectLin {},
         pad: 4,
-        backend_type: &bt,
       },
       !obj:layers.PoolingLayer {
         name: layer2,
         op: 'max',
         fshape: [4, 4],
         stride: 2,
-        backend_type: &bt,
       },
        !obj:layers.CrossMapResponseNormLayer {
          name: layer3,
          ksize: 5,
          alpha: 0.0001,
          beta: 0.9,
-        backend_type: &bt,
        },
       !obj:layers.DropOutLayer {
         name: do1,
         keep: 0.8,
-        backend_type: &bt,
       },
        !obj:layers.ConvLayer {
         name: layer4,
@@ -139,26 +134,22 @@
         weight_init: *wt_init0,
         activation: !obj:transforms.RectLin {},
         pad: 3,
-        backend_type: &bt,
       },
       !obj:layers.PoolingLayer {
         name: layer5,
         op: 'max',
         fshape: [4, 4],
         stride: 2,
-        backend_type: &bt,
       },
        !obj:layers.CrossMapResponseNormLayer {
          name: layer6,
          ksize: 5,
          alpha: 0.0001,
          beta: 1.9365,
-         backend_type: &bt,
        },
       !obj:layers.DropOutLayer {
         name: do2,
         keep: 0.5,
-        backend_type: &bt,
       },
      !obj:layers.ConvLayer {
         name: layer7,
@@ -168,26 +159,22 @@
         weight_init: *wt_init0,
         activation: !obj:transforms.RectLin {},
         pad: 3,
-        backend_type: &bt,
       },
       !obj:layers.PoolingLayer {
         name: layer8,
         op: 'max',
         fshape: [2, 2],
         stride: 2,
-        backend_type: &bt,
       },
        !obj:layers.CrossMapResponseNormLayer {
          name: layer9,
          ksize: 5,
          alpha: 0.0001,
          beta: 1.9365,
-        backend_type: &bt,
        },
       !obj:layers.DropOutLayer {
         name: do3,
         keep: 0.42,
-        backend_type: &bt,
       },
       !obj:layers.FCLayer {
         name: layer10,
@@ -195,12 +182,10 @@
         lrule_init: *gdm,
         weight_init: *wt_init,
         activation: !obj:transforms.RectLin {},
-        backend_type: &bt,
       },
       !obj:layers.DropOutLayer {
         name: do4,
         keep: 0.37,
-        backend_type: &bt,
       },
       !obj:layers.FCLayer {
         name: layer11,
@@ -208,12 +193,10 @@
         lrule_init: *gdm,
         weight_init: *wt_init,
         activation: !obj:transforms.RectLin {},
-        backend_type: &bt,
       },
       !obj:layers.DropOutLayer {
         name: do5,
         keep: 0.32,
-        backend_type: &bt,
       },
       &lastlayer !obj:layers.FCLayer {
         name: output,
@@ -221,14 +204,11 @@
         weight_init: *wt_init,
         nout: 10,
         activation: !obj:transforms.Softmax {},
-        backend_type: &bt,
       },
       &costlayer !obj:layers.CostLayer {
         name: cost,
         ref_layer: *datalayer,
-        cost: !obj:transforms.CrossEntropy {
-            backend_type: &bt,
-        },
+        cost: !obj:transforms.CrossEntropy {},
       },
     ],
   },
