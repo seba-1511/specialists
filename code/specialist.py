@@ -2,17 +2,13 @@
 # -*- coding: utf-8 -*-
 
 
-# TODO:
-#: Import cudanet backend
-#: Import Datapar and try it
-
 import os
 import numpy as np
 import cPickle as pk
 from itertools import izip
 
 from sklearn.metrics import confusion_matrix
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 from neon.backends.par import NoPar
 from neon.datasets.dataset import Dataset
@@ -22,9 +18,6 @@ from neon.datasets import (
     MNIST,
 )
 from neon.backends.cpu import CPU
-# from model_layers import (
-    # load_cifar100_train32_test50,
-#)
 
 CURR_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -71,18 +64,18 @@ def clean_cm(cm):
     return cm
 
 
-def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues):
-    plt.imshow(cm, interpolation='nearest', cmap=cmap)
-    plt.title(title)
-    plt.colorbar()
-    tick_marks = np.arange(len(cm))
-    plt.xticks(tick_marks, xrange(len(cm)), rotation=45)
-    plt.yticks(tick_marks, xrange(len(cm)))
-    plt.tight_layout()
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
-    plt.show()
-    plt.close()
+#def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues):
+    #plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    #plt.title(title)
+    #plt.colorbar()
+    #tick_marks = np.arange(len(cm))
+    #plt.xticks(tick_marks, xrange(len(cm)), rotation=45)
+    #plt.yticks(tick_marks, xrange(len(cm)))
+    #plt.tight_layout()
+    #plt.ylabel('True label')
+    #plt.xlabel('Predicted label')
+    #plt.show()
+    #plt.close()
 
 
 def soft_sum_cm(targets, preds):
@@ -218,7 +211,8 @@ def greedy_clustering_overlapping(friends, N):
 
 
 def to_one_hot(i, n_classes):
-    return np.array([0 for x in xrange(n_classes) if x != i else 1])
+    return np.array([0 if x != i else 1 for x in xrange(n_classes)])
+
 
 class SpecialistDataset(Dataset):
 
@@ -262,19 +256,32 @@ class SpecialistDataset(Dataset):
         self.inferences_path = inferences_path
         self.full_predictions = full_predictions
 
+    @classmethod
+    def cluster_classes(cls, targets, probs, cm=None, nb_clusters=5,
+                        clustering=None):
+        cm = cm if cm else cls.cm_types['soft_sum_pred_cm']
+        clustering = clustering if clustering else cls.clustering_methods[
+            'greedy']
+        cm = cm(targets, probs)
+        cm = clean_cm(cm)
+        friendliness = unfriendliness_matrix(cm)
+        cluster = clustering(friendliness, nb_clusters)
+        return [list(c) for c in cluster]
+
     def load(self, backend, experiment):
         self.dataset.load(backend, experiment)
         train_probs, test_probs = load_inferences(
             path=self.inferences_path, name=self.experiment)
-        train_targets, test_targets = load_inferences(
+        train_targets, test_targets = load_targets(
             path=self.inferences_path, name=self.experiment)
-        test_targets = np.argmax(test_targets, axis=1)
-        cm = self.confusion_matrix(test_targets, test_probs)
-        cm = clean_cm(cm)
-        friendliness = unfriendliness_matrix(cm)
-        cluster = self.clustering(friendliness, self.nb_clusters)[self.cluster]
+        #: TODO: Change test_* to validation set. (Necessary !)
+        cluster = SpecialistDataset.cluster_classes(test_targets, test_probs,
+                                                    cm=self.confusion_matrix,
+                                                    nb_clusters=self.nb_clusters,
+                                                    clustering=self.clustering)[self.cluster]
         cluster = list(cluster)
         n_classes = len(cluster)
+        print '\n\nNumber of classes: ', n_classes, '\n\n'
         new_inputs = []
         new_targets = []
         for bi, bt in izip(self.dataset.inputs['train'], self.dataset.targets['train']):
@@ -296,7 +303,7 @@ class SpecialistDataset(Dataset):
             for i, t in izip(bi, bt):
                 if np.argmax(t) in cluster or self.full_predictions:
                     clss = np.argmax(t)
-                    clss = cluster.index(clss)
+                    clss = cluster.index(clss) if clss in cluster else 0
                     new_inputs.append(i)
                     new_targets.append(to_one_hot(clss, n_classes))
         self.dataset.inputs['test'] = np.array(new_inputs)
