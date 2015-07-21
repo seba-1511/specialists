@@ -187,7 +187,7 @@ def get_spec_probs(spec, experiment, dataset, backend, nb_classes):
 
 if __name__ == '__main__':
     nb_classes = 10
-    nb_clusters = 3
+    nb_clusters = 2
     experiment = '4_test22_train14_74epochs_2clusters'
     #experiment = '9_gene45.22_10spec'
     par = NoPar()

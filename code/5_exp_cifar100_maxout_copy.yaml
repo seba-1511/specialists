@@ -91,7 +91,7 @@
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
     serialized_path: './saved_models/4_trying_test45_train22.prm',
-    num_epochs: 350,
+    num_epochs: 1350,
     batch_norm: True,
     batch_size: &bs 128,
     layers: [
