@@ -49,24 +49,24 @@
   lrule: &gdm {
     type: gradient_descent_momentum_weight_decay,
     lr_params: {
-      learning_rate: 0.17,
-      weight_decay: 0.001,
+      learning_rate: 0.008115988,
+      weight_decay: 0.000175,
       schedule: {
           type: step,
           ratio: 0.15,
-          step_epochs: 20,
+          step_epochs: 1,
       },
       momentum_params: {
         type: linear_monotone,
-        coef: 0.5,
+        coef: 0.10207371,
       },
     },
   },
   # CNN model specification
   # essentially a multi-layer perceptron with convolutional and pooling layers
   model: !obj:models.MLP {
-    #serialized_path: './saved_models/4_trying_improved.prm',
-    num_epochs: 100,
+    #serialized_path: './saved_models/4_trying_improved_based_on_spear.prm',
+    num_epochs: 250,
     batch_norm: True,
     batch_size: &bs 128,
     layers: [
@@ -153,7 +153,7 @@
       },
       !obj:layers.FCLayer {
         name: layer10,
-        nout: 2048,
+        nout: 1024,
         lrule_init: *gdm,
         weight_init: *wt_init,
         activation: !obj:transforms.RectLin {},

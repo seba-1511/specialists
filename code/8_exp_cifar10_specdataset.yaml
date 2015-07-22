@@ -74,9 +74,9 @@
   model: !obj:models.MLP {
     serialized_path: '/home/ubuntu/specialists/code/saved_experiments/4_test22_train14_74epochs_2clusters/temp/model.prm',
     deserialized_path: '/home/ubuntu/specialists/code/saved_experiments/4_test22_train14_74epochs_2clusters/model.prm',
-    num_epochs: 94,
+    num_epochs: 74,
     batch_norm: True,
-    batch_size: &bs 128,
+    batch_size: &bs 1,
     layers: [
       &datalayer !obj:layers.DataLayer {
         name: d0,
