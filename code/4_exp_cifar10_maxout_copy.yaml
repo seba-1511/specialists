@@ -23,6 +23,8 @@
     sample_pct: 100,
   },
 
+  validation_pct: 0.15,
+
   predictions: ['train', 'test'],
 
   metrics: {
