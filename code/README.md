@@ -46,4 +46,5 @@ Script allowing to merge the generalist and specialist predictions for a given e
 
 #### 12_cifar10_opt_exp
 Experiment to optimize hyperparameters for CIFAR10 network 4.
+19.61: epochs: 220, step_epochs: 3, weight_decay: 0.0001, lr: 0.08900302, momentum: 0.3990119
 
