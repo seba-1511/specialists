@@ -21,11 +21,10 @@
   dataset: &ds !obj:datasets.CIFAR10 {
     repo_path: '~/data',
     sample_pct: 100,
+    validation_pct: 10,
   },
 
-  validation_pct: 0.15,
-
-  predictions: ['train', 'test'],
+  predictions: ['train', 'test', 'validation'],
 
   metrics: {
     train: [

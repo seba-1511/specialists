@@ -22,6 +22,7 @@
     dataset: !obj:neon.datasets.CIFAR10 {
             repo_path: '~/data',
             sample_pct: 100,
+            validation_pct: 10,
         },
     experiment: '4_test22_train14_74epochs_2clusters',
     inferences_path: '/home/ubuntu/specialists/code/',
