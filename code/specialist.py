@@ -33,7 +33,12 @@ def load_targets(path, name):
     test = pk.load(f)
     test = np.argmax(test, axis=1)
     f.close()
-    return (train, test)
+    f = open(path + '/saved_experiments/' +
+             name + '/validation-targets.pkl', 'rb')
+    valid = pk.load(f)
+    valid = np.argmax(test, axis=1)
+    f.close()
+    return (train, valid, test)
 
 
 def load_inferences(path, name):
@@ -45,7 +50,11 @@ def load_inferences(path, name):
              name + '/test-inference.pkl', 'rb')
     test = pk.load(f)
     f.close()
-    return (train, test)
+    f = open(path + '/saved_experiments/' +
+             name + '/validation-inference.pkl', 'rb')
+    valid = pk.load(f)
+    f.close()
+    return (train, valid, test)
 
 
 def load_data():
@@ -288,12 +297,12 @@ class SpecialistDataset(Dataset):
 
     def load(self, backend, experiment):
         self.dataset.load(backend, experiment)
-        train_probs, test_probs = load_inferences(
+        train_probs, valid_probs, test_probs = load_inferences(
             path=self.inferences_path, name=self.experiment)
-        train_targets, test_targets = load_targets(
+        train_targets, valid_targets, test_targets = load_targets(
             path=self.inferences_path, name=self.experiment)
         #: TODO: Change test_* to validation set. (Necessary !)
-        cluster = SpecialistDataset.cluster_classes(test_targets, test_probs,
+        cluster = SpecialistDataset.cluster_classes(valid_targets, valid_probs,
                                                     cm=self.confusion_matrix,
                                                     nb_clusters=self.nb_clusters,
                                                     clustering=self.clustering)[self.cluster]
