@@ -9,9 +9,8 @@ from itertools import izip
 
 from sklearn.metrics import confusion_matrix
 from sklearn.cluster import KMeans, SpectralClustering
-# import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
-from neon.backends.par import NoPar
 from neon.datasets.dataset import Dataset
 from neon.datasets import (
     CIFAR10,
@@ -65,18 +64,18 @@ def clean_cm(cm):
     return cm
 
 
-# def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues):
-    # plt.imshow(cm, interpolation='nearest', cmap=cmap)
-    # plt.title(title)
-    # plt.colorbar()
-    # tick_marks = np.arange(len(cm))
-    # plt.xticks(tick_marks, xrange(len(cm)), rotation=45)
-    # plt.yticks(tick_marks, xrange(len(cm)))
-    # plt.tight_layout()
-    # plt.ylabel('True label')
-    # plt.xlabel('Predicted label')
-    # plt.show()
-    # plt.close()
+def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues):
+     plt.imshow(cm, interpolation='nearest', cmap=cmap)
+     plt.title(title)
+     plt.colorbar()
+     tick_marks = np.arange(len(cm))
+     plt.xticks(tick_marks, xrange(len(cm)), rotation=45)
+     plt.yticks(tick_marks, xrange(len(cm)))
+     plt.tight_layout()
+     plt.ylabel('True label')
+     plt.xlabel('Predicted label')
+     plt.show()
+     plt.close()
 
 
 def soft_sum_cm(targets, preds):
@@ -127,9 +126,9 @@ def soft_sum_n_pred_cm(targets, preds, n=5):
 
 
 def spectral_clustering(matrix, N):
-    spectral = SpectralClustering(n_clusters=N, n_jobs=-1)
+    spectral = SpectralClustering(n_clusters=N)
     clusters = spectral.fit_predict(matrix)
-    res = [[], ] * N
+    res = [[] for _ in range(N)]
     for i, c in enumerate(clusters):
         res[c].append(i)
     return res
@@ -138,7 +137,7 @@ def spectral_clustering(matrix, N):
 def kmeans_clustering(matrix, N):
     km = KMeans(n_clusters=N, n_jobs=-1)
     clusters = km.fit_predict(matrix)
-    res = [[], ] * N
+    res = [[] for _ in range(N) ]
     for i, c in enumerate(clusters):
         res[c].append(i)
     return res
@@ -243,8 +242,8 @@ class SpecialistDataset(Dataset):
     clustering_methods = {
         'greedy': greedy_clustering,
         'overlap_greedy': greedy_clustering_overlapping,
-        'spectral': None,
-        'kmeans': None,
+        'spectral': spectral_clustering,
+        'kmeans': kmeans_clustering,
     }
     cm_types = {
         'standard': confusion_matrix,
@@ -332,29 +331,35 @@ class SpecialistDataset(Dataset):
         self.format()
 
 
-# if __name__ == '__main__':
-    # model = load_cifar100_train32_test50()
-    # data, par = load_data()
-    # targets = data.targets['test']
-    # pred_probs = model.predict_proba(data.inputs['test'])
+if __name__ == '__main__':
+     #model = load_cifar100_train32_test50()
+     #data, par = load_data()
+     #targets = data.targets['test']
+     #pred_probs = model.predict_proba(data.inputs['test'])
 
-    # experiment = '5_test50_train33_156epochs'
-    # experiment = '5_test45_train22_740epochs'
-    # experiment = '4_test22_train14_74epochs'
-    # train_pred_probs, test_pred_probs = load_inferences(name=experiment)
-    # train_targets, test_targets = load_targets(name=experiment)
-    # train_pred_classes = np.argmax(train_pred_probs, axis=1)
-    # test_pred_classes = np.argmax(test_pred_probs, axis=1)
-    # cm_categorical = confusion_matrix(test_targets, test_pred_classes)
-    # cm_categorical = clean_cm(cm_categorical)
-    # cm_soft = soft_sum_cm(test_targets, test_pred_probs)
-    # cm_soft = soft_sum_pred_cm(test_targets, test_pred_probs)
-    # friendliness = unfriendliness_matrix(cm_soft)
-    # plot_confusion_matrix(friendliness)
-    # clusters = greedy_clustering(friendliness, 5)
+     #experiment = '5_test50_train33_156epochs'
+     #experiment = '5_test45_train22_740epochs'
+     #experiment = '4_test22_train14_74epochs'
+     #train_pred_probs, test_pred_probs = load_inferences(name=experiment, path=CURR_DIR)
+     #train_targets, test_targets = load_targets(name=experiment, path=CURR_DIR)
+     #train_pred_classes = np.argmax(train_pred_probs, axis=1)
+     #test_pred_classes = np.argmax(test_pred_probs, axis=1)
+     #cm_soft = confusion_matrix(test_targets, test_pred_classes)
+     #cm_soft = clean_cm(cm_soft)
+     ##cm_soft = soft_sum_cm(test_targets, test_pred_probs)
+     ##cm_soft = soft_sum_pred_cm(test_targets, test_pred_probs)
+     #friendliness = unfriendliness_matrix(cm_soft)
+     #plot_confusion_matrix(friendliness)
+     #clusters = greedy_clustering(friendliness, 5)
 
-    # plot_confusion_matrix(cm_soft, title=experiment)
-    # plot_confusion_matrix(cm_categorical, title=experiment)
+     ##plot_confusion_matrix(cm_soft, title=experiment)
+
+     #spectral = spectral_clustering(cm_soft, 5)
+     #kmeans = kmeans_clustering(cm_soft, 5)
+     #greedy = greedy_clustering(cm_soft, 5)
+     #overlap = greedy_clustering_overlapping(cm_soft, 5)
+     #import pdb; pdb.set_trace()
+
 
     # sdata = SpecialistDataset(dataset='cifar100', experiment=experiment)
 
