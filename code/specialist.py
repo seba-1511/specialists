@@ -8,6 +8,7 @@ import cPickle as pk
 from itertools import izip
 
 from sklearn.metrics import confusion_matrix
+from sklearn.cluster import KMeans, SpectralClustering
 #import matplotlib.pyplot as plt
 
 from neon.backends.par import NoPar
@@ -124,6 +125,20 @@ def soft_sum_n_pred_cm(targets, preds, n=5):
     """
     pass
 
+
+def spectral_clustering(matrix, N):
+    spectral = SpectralClustering(nb_clusters=N, n_jobs=-1)
+    clusters = spectral.fit_predict(matrix)
+    res = [[], ] * N
+    for i, c in enumerate(clusters):
+        res[c].append(i)
+    return res
+
+
+
+
+def kmeans_clustering(matrix, N):
+    pass
 
 def unfriendliness_matrix(cm):
     """
