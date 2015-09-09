@@ -12,6 +12,7 @@ from sklearn.cluster import KMeans, SpectralClustering
 #import matplotlib.pyplot as plt
 
 from neon.datasets.dataset import Dataset
+from neon.util.persist import deserialize
 from neon.datasets import (
     CIFAR10,
     CIFAR100,
@@ -263,14 +264,13 @@ class SpecialistDataset(Dataset):
 
     def __init__(self, dataset=None, experiment='', nb_clusters=5, cluster=0,
                  confusion_matrix='soft_sum_pred_cm', clustering='greedy',
-                 repo_path='~/data', inferences_path='~/inferences',
-                 full_predictions=False, **kwargs):
+                 experiment_path='', repo_path='~/data', full_predictions=False,
+                 **kwargs):
         """
-            dataset: which dataset to sub-set, should be an Dataset() instance.
-            experiment: on which experiment should the clustering process be
-                        based, and the inferences loaded.
+            dataset: which dataset to sub-set, should be a Dataset() instance.
             nb_clusters: total number of clusters.
             cluster: which cluster to use for this current experiment.
+            model: which model to load to perform clustering.
         """
         self.repo_path = repo_path
         self.__dict__ = dataset.__dict__
@@ -280,7 +280,9 @@ class SpecialistDataset(Dataset):
         self.cluster = cluster
         self.confusion_matrix = self.cm_types[confusion_matrix]
         self.clustering = self.clustering_methods[clustering]
-        self.inferences_path = inferences_path
+        # TODO: Make sure that this works:
+        self.model = deserialize(experiment_path).model
+        self.model.set_params(deserialize(self.model.deserialized_path))
         self.full_predictions = full_predictions
 
     @classmethod
@@ -297,11 +299,8 @@ class SpecialistDataset(Dataset):
 
     def load(self, backend, experiment):
         self.dataset.load(backend, experiment)
-        train_probs, valid_probs, test_probs = load_inferences(
-            path=self.inferences_path, name=self.experiment)
-        train_targets, valid_targets, test_targets = load_targets(
-            path=self.inferences_path, name=self.experiment)
-        #: TODO: Change test_* to validation set. (Necessary !)
+        valid_probs, valid_targets = self.model.predict_fullset(self.dataset,
+                                                                'validation')
         cluster = SpecialistDataset.cluster_classes(valid_targets, valid_probs,
                                                     cm=self.confusion_matrix,
                                                     nb_clusters=self.nb_clusters,
