@@ -20,8 +20,7 @@
             validation_pct: 10,
             backend_type: &bt np.float32,  #########################################
         },
-    experiment: '4_test22_train14_74epochs_2clusters',
-    inferences_path: '/home/ubuntu/specialists/code/',
+    experiment_path: '/home/seba-1511/Dropbox/Dev/specialists/code/vgg-fp32.yaml',
     nb_clusters: 2,
     cluster: &cluster 1,
     full_predictions: False,
@@ -245,7 +244,7 @@
         lrule_init: *gdmwd,
         brule_init: *gdm,
         weight_init: *wt_initout,
-        nout: 100,
+        nout: 10,
         activation: !obj:transforms.Softmax {},
       },
       &costlayer !obj:layers.CostLayer {

@@ -91,7 +91,7 @@
     batch_size: &bs 64, ################################# 128 only fits fp16
     #step_print: 1,
     reuse_deltas: True,
-    serialized_path: '~/Dropbox/Dev/specialists/code/models/custom_vgg100_fp32.prm',
+    serialized_path: '~/Dropbox/Dev/specialists/code/custom_vgg10_fp32.prm',
     layers: [
       &datalayer !obj:layers.DataLayer {
         name: d0,
