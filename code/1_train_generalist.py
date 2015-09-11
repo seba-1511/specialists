@@ -43,8 +43,8 @@ if __name__ == '__main__':
     (X_train, y_train), (X_test, y_test), nout = load_cifar10(path=args.data_dir)
     (X_train, y_train), (X_valid, y_valid) = split_train_set(X_train, y_train)
     # That's only for the allconv net:
-    nout = 16
-    model, opt, cost = get_allconv(nout=nout)
+    # nout = 16
+    model, opt, cost =get_custom_vgg(nout=nout)
 
     # TODO: Split train to get a validation set
     train_set = DataIterator(X_train, y_train, nclass=nout, lshape=(3, 32, 32))
@@ -61,5 +61,5 @@ if __name__ == '__main__':
     print 'Valid misclassification error: ', model.eval(valid_set, metric=Misclassification())
     print 'Test misclassification error: ', model.eval(test_set, metric=Misclassification())
 
-    save_obj(model, args.save_path)
+    save_obj(model.serialize(), args.save_path)
 
