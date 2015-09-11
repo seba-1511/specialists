@@ -10,6 +10,9 @@ from neon.layers import (
     Activation,
 )
 from neon.models import Model
+from neon.optimizers import GradientDescentMomentum, Schedule, MultiOptimizer
+from neon.layers import GeneralizedCost
+from neon.transforms import CrossEntropyMulti
 from neon.transforms import (
     Misclassification,
     Rectlin,
@@ -52,15 +55,31 @@ def get_custom_vgg(archive_path=None, nout=10):
         Affine(nout=4096, init=fc_init, bias=Constant(1), activation=Rectlin()),
         BatchNorm(),
         Dropout(0.5),
-        Affine(nout=nout, init=last_init, bias=Constant(-7), activation=Rectlin()),
-        Activation(Softmax()),
+        Affine(nout=nout, init=last_init, bias=Constant(-7), activation=Softmax()),
+        # Activation(Softmax()),
     ]
-    # Instanciate model
-    if archive_path != None:
-        raise('Loading weights not implemented yet.')
-    # Set model weights
-
-    return Model(layers=layers)
+    model = Model(layers=layers)
+    if archive_path is not None:
+        # Set model weights
+        model.load_weights(archive_path)
+    opt_schedule = Schedule(step_config=20, change=0.1)
+    opt_gdm = GradientDescentMomentum(
+        learning_rate=0.0002,
+        momentum_coef=0.90,
+        schedule=opt_schedule,
+    )
+    opt_gdmwd = GradientDescentMomentum(
+        learning_rate=0.0001,
+        momentum_coef=0.90,
+        wdecay=0.0005,
+        schedule=opt_schedule,
+    )
+    opt = MultiOptimizer({
+        'default': opt_gdmwd,
+        'Bias': opt_gdm,
+    })
+    cost = GeneralizedCost(costfunc=CrossEntropyMulti(epsilon=0.0005, scale=1000))
+    return model, opt, cost
 
 def get_allconv(archive_path=None, nout=10):
     init_uni = GlorotUniform()
@@ -79,13 +98,23 @@ def get_allconv(archive_path=None, nout=10):
     layers.append(Conv((1,1,16), init=init_uni, activation=Rectlin()))
     layers.append(Pooling(6, op="avg"))
     layers.append(Activation(Softmax()))
-    return Model(layers=layers)
+    model = Model(layers=layers)
+    if archive_path is not None:
+        model.load_weights(archive_path)
+    opt_schedule = Schedule(step_config=20, change=0.1)
+    opt = GradientDescentMomentum(
+        learning_rate=0.5,
+        schedule=opt_schedule,
+        momentum_coef=0.9,
+        wdecay=0.0001,
+    )
+    cost = GeneralizedCost(costfunc=CrossEntropyMulti())
+    return model, opt, cost
 
 def get_dummy(archive_path=None, nout=10):
-    return Model(
-        layers=[
-            Affine(100),
-            Affine(100),
-        ]
-    )
+    model = Model(layers=[Affine(100),Affine(100),])
+    opt = GradientDescentMomentum(learning_rate=0.5)
+    cost = GeneralizedCost(costfunc=CrossEntropyMulti())
+    return model, opt, cost
+
 
