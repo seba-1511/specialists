@@ -27,8 +27,15 @@ args = parser.parse_args()
 def split_train_set(X_train, y_train):
     return (X_train[:-5000], y_train[:-5000]), (X_train[-5000:], y_train[-5000:])
 
-def filter_dataset(X, y, clusters):
-    return (X, y, len(clusters))
+def filter_dataset(X, y, cluster):
+    new_X = np.empty((0, X.shape[1]))
+    new_y = np.empty((0, y.shape[1]))
+    for c in cluster:
+        idx = y == c
+        idx = idx[:, 0]
+        new_X = np.vstack((new_X, X[idx]))
+        new_y = np.vstack((new_y, y[idx]))
+    return (new_X, new_y, len(cluster))
 
 
 if __name__ == '__main__':
@@ -38,7 +45,7 @@ if __name__ == '__main__':
     num_epochs = 74 if num_epochs == 10 else num_epochs
     rng_seed = 1234
     num_clusters = 2
-    clustering = SpecialistDataset.clustering_methods['overlap_greedy']
+    clustering = SpecialistDataset.clustering_methods['kmeans']
     confusion_matrix = SpecialistDataset.cm_types['soft_sum_pred_cm']
     spec_net = get_dummy
     gene_net = get_dummy
@@ -65,8 +72,8 @@ if __name__ == '__main__':
     gene_targets = []
     # TODO: Check that the following works as expected
     for X, y in valid_set:
-       gene_preds += generalist.fprop(X, inference=True).transpose().asnumpyarray().tolist()
-       gene_targets += np.argmax(y.transpose().asnumpyarray(), axis=1).tolist()
+       gene_preds += generalist.fprop(X, inference=True).asnumpyarray().transpose().tolist()
+       gene_targets += np.argmax(y.asnumpyarray().transpose(), axis=1).tolist()
     gene_preds = np.array(gene_preds)
     gene_targets = np.array(gene_targets)
 
@@ -79,6 +86,9 @@ if __name__ == '__main__':
         cm=confusion_matrix,
         nb_clusters=num_clusters,
     )
+    del gene_preds
+    del gene_targets
+    del valid_set
 
     specialists = []
     X_train = np.vstack((X_train, X_valid))
