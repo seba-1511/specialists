@@ -44,12 +44,12 @@ if __name__ == '__main__':
     num_epochs = args.epochs
     num_epochs = 74 if num_epochs == 10 else num_epochs
     rng_seed = 1234
-    num_clusters = 2
+    num_clusters = 4
     clustering = SpecialistDataset.clustering_methods['kmeans']
     confusion_matrix = SpecialistDataset.cm_types['soft_sum_pred_cm']
-    spec_net = get_dummy
-    gene_net = get_dummy
-    gene_archive = 'dummy.prm'
+    spec_net = get_custom_vgg
+    gene_net = get_allconv
+    gene_archive = 'allconv.prm'
 
     # setup backend
     be = gen_backend(
@@ -89,13 +89,14 @@ if __name__ == '__main__':
     del gene_preds
     del gene_targets
     del valid_set
+    print clusters
 
     specialists = []
     X_train = np.vstack((X_train, X_valid))
     y_train = np.vstack((y_train, y_valid))
 
     # Train each specialist
-    for cluster in clusters:
+    for i, cluster in enumerate(clusters):
 
         # Create datasets
         X_spec, y_spec, spec_out = filter_dataset(X_train, y_train, cluster)
@@ -114,5 +115,6 @@ if __name__ == '__main__':
         print 'Train misclassification error: ', specialist.eval(spec_set, metric=Misclassification())
         print 'Test misclassification error: ', specialist.eval(spec_test, metric=Misclassification())
         specialists.append(specialist)
+        save_obj(specialist.serialize(), 'specialist_soft_sum_pred_cm_kmeans_4_' + str(i) + '.prm')
 
 # TODO: Save specialists weights in some way.
