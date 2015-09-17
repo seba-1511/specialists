@@ -20,6 +20,8 @@ from cifar_net import get_custom_vgg, get_allconv, get_dummy
 parser = NeonArgparser(__doc__)
 args = parser.parse_args()
 
+EXPERIMENT_DIR = 'experiments/cifar10/'
+
 
 def split_train_set(X_train, y_train):
     return (X_train[:-5000], y_train[:-5000]), (X_train[-5000:], y_train[-5000:])
@@ -43,7 +45,7 @@ if __name__ == '__main__':
     (X_train, y_train), (X_test, y_test), nout = load_cifar10(path=args.data_dir)
     (X_train, y_train), (X_valid, y_valid) = split_train_set(X_train, y_train)
     # That's only for the allconv net:
-    nout = 16
+    # nout = 16
     model, opt, cost = get_allconv(nout=nout)
 
     # TODO: Split train to get a validation set
@@ -61,5 +63,5 @@ if __name__ == '__main__':
     print 'Valid misclassification error: ', model.eval(valid_set, metric=Misclassification())
     print 'Test misclassification error: ', model.eval(test_set, metric=Misclassification())
 
-    save_obj(model.serialize(), args.save_path)
+    save_obj(model.serialize(), EXPERIMENT_DIR + args.save_path)
 
