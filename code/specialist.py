@@ -9,16 +9,16 @@ from itertools import izip
 
 from sklearn.metrics import confusion_matrix
 from sklearn.cluster import KMeans, SpectralClustering
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
-from neon.datasets.dataset import Dataset
-from neon.util.persist import deserialize
-from neon.datasets import (
-    CIFAR10,
-    CIFAR100,
-    MNIST,
-)
-from neon.backends.cpu import CPU
+# from neon.datasets.dataset import Dataset
+# from neon.util.persist import deserialize
+# from neon.datasets import (
+    # CIFAR10,
+    # CIFAR100,
+    # MNIST,
+# )
+# from neon.backends.cpu import CPU
 
 CURR_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -74,18 +74,18 @@ def clean_cm(cm):
     return cm
 
 
-# def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues):
-     # plt.imshow(cm, interpolation='nearest', cmap=cmap)
-     # plt.title(title)
-     # plt.colorbar()
-     # tick_marks = np.arange(len(cm))
-     # plt.xticks(tick_marks, xrange(len(cm)), rotation=45)
-     # plt.yticks(tick_marks, xrange(len(cm)))
-     # plt.tight_layout()
-     # plt.ylabel('True label')
-     # plt.xlabel('Predicted label')
-     # plt.show()
-     # plt.close()
+def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues):
+     plt.imshow(cm, interpolation='nearest', cmap=cmap)
+     plt.title(title)
+     plt.colorbar()
+     tick_marks = np.arange(len(cm))
+     plt.xticks(tick_marks, xrange(len(cm)), rotation=45)
+     plt.yticks(tick_marks, xrange(len(cm)))
+     plt.tight_layout()
+     plt.ylabel('True label')
+     plt.xlabel('Predicted label')
+     plt.show()
+     plt.close()
 
 
 def soft_sum_cm(targets, preds):
@@ -242,7 +242,7 @@ def to_one_hot(i, n_classes):
     return np.array([0 if x != i else 1 for x in xrange(n_classes)])
 
 
-class SpecialistDataset(Dataset):
+class SpecialistDataset(object):
 
     """
          Class allowing to create a sub-dataset, from a given one.
