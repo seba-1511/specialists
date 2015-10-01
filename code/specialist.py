@@ -164,12 +164,21 @@ def unfriendliness_matrix(cm):
         [[cm[i, j] + cm[j, i] for j in xrange(N)] for i in xrange(N)])
 
 
-def set_score(friends_mat, cls, friends_set):
+def adversity(friends_mat, cls, friends_set):
     """
         Returns the friends score for cls, with respect to a given friend set.
     """
     return sum([friends_mat[cls, f] for f in friends_set])
 
+def non_diag_argmin(matrix):
+    x_min, y_min, curr_min = None, None, np.inf
+    for x, r in enumerate(matrix):
+        for y, val in enumerate(r):
+            if val < curr_min and x != y:
+                curr_min = val
+                x_min = x
+                y_min = y
+    return (x_min, y_min)
 
 def greedy_clustering(friends, N):
     """
@@ -179,6 +188,36 @@ def greedy_clustering(friends, N):
     nb_classes = len(friends)
     clusters = [set() for _ in xrange(N)]
     seen = set()
+    scores = friends.copy()
+    while sum([len(c) for c in clusters]) < N:
+        # That loop is to avoid each class ending in the same cluster.
+        clss, most_friendly = non_diag_argmin(scores)
+        friend_clstr = np.argmin([adversity(friends, most_friendly, s) if clss not in s else np.inf
+                                  for s in clusters])
+        added = False
+        for c in clusters:
+            if len(c) <= 0 or most_friendly in c:
+                c.add(most_friendly)
+                added = True
+                break
+        if not added:
+            clusters[friend_clstr].add(most_friendly)
+
+        clss_clstr = np.argmin([adversity(friends, most_friendly, s) if most_friendly not in s else np.inf
+                                  for s in clusters])
+        added = False
+        for c in clusters:
+            if len(c) <= 0 or clss in c:
+                c.add(clss)
+                added = True
+                break
+        if not added:
+            clusters[clss_clstr].add(clss)
+        seen.add(clss)
+        seen.add(most_friendly)
+        scores[clss][most_friendly] = np.max(scores)
+        scores[most_friendly][clss] = np.max(scores)
+
     scores = friends.copy()
     while len(seen) < nb_classes:
         best = np.argmax(scores)
@@ -194,10 +233,10 @@ def greedy_clustering(friends, N):
             opt_set = [i for i, s in enumerate(clusters) if class2 in s][0]
         else:
             set_scores_1 = np.array(
-                [set_score(friends, class1, s) for s in clusters])
+                [adversity(friends, class1, s) for s in clusters])
             set_scores_2 = np.array(
-                [set_score(friends, class2, s) for s in clusters])
-            opt_set = np.argmin(set_scores_1 + set_scores_2)
+                [adversity(friends, class2, s) for s in clusters])
+            opt_set = np.argmax(set_scores_1 + set_scores_2)
         clusters[opt_set].add(class1)
         clusters[opt_set].add(class2)
         seen.add(class1)
@@ -338,37 +377,64 @@ class SpecialistDataset(object):
         self.format()
 
 
-# if __name__ == '__main__':
-     #model = load_cifar100_train32_test50()
-     #data, par = load_data()
-     #targets = data.targets['test']
-     #pred_probs = model.predict_proba(data.inputs['test'])
+if __name__ == '__main__':
+    from neon.backends import gen_backend
+    from neon.data import DataIterator, load_cifar10
+    from neon.transforms.cost import Misclassification
+    from neon.callbacks.callbacks import Callbacks
+    from neon.util.argparser import NeonArgparser
+    from cifar_net import *
+    parser = NeonArgparser(__doc__)
+    args = parser.parse_args()
+    # hyperparameters
+    batch_size = 128
+    num_epochs = args.epochs
+    num_epochs = 74 if num_epochs == 10 else num_epochs
+    rng_seed = 1234
 
-     #experiment = '5_test50_train33_156epochs'
-     #experiment = '5_test45_train22_740epochs'
-     #experiment = '4_test22_train14_74epochs'
-     #train_pred_probs, test_pred_probs = load_inferences(name=experiment, path=CURR_DIR)
-     #train_targets, test_targets = load_targets(name=experiment, path=CURR_DIR)
-     #train_pred_classes = np.argmax(train_pred_probs, axis=1)
-     #test_pred_classes = np.argmax(test_pred_probs, axis=1)
-     #cm_soft = confusion_matrix(test_targets, test_pred_classes)
-     #cm_soft = clean_cm(cm_soft)
-     ##cm_soft = soft_sum_cm(test_targets, test_pred_probs)
-     ##cm_soft = soft_sum_pred_cm(test_targets, test_pred_probs)
-     #friendliness = unfriendliness_matrix(cm_soft)
-     #plot_confusion_matrix(friendliness)
-     #clusters = greedy_clustering(friendliness, 5)
+    # setup backend
+    be = gen_backend(
+        backend=args.backend,
+        batch_size=batch_size,
+        rng_seed=rng_seed,
+        device_id=args.device_id,
+        default_dtype=args.datatype,
+    )
+    (X_train, y_train), (X_test, y_test), nout = load_cifar10(path=args.data_dir)
+    model, opt, cost = get_custom_vgg(nout=nout)
 
-     ##plot_confusion_matrix(cm_soft, title=experiment)
+    train_set = DataIterator(X_train, y_train, nclass=nout, lshape=(3, 32, 32))
+    test_set = DataIterator(X_test, y_test, nclass=nout, lshape=(3, 32, 32))
 
-     #spectral = spectral_clustering(cm_soft, 5)
-     #kmeans = kmeans_clustering(cm_soft, 5)
-     #greedy = greedy_clustering(cm_soft, 5)
-     #overlap = greedy_clustering_overlapping(cm_soft, 5)
-     #import pdb; pdb.set_trace()
+    # callbacks = Callbacks(model, train_set, output_file=args.output_file,
+                          # valid_set=test_set, valid_freq=args.validation_freq,
+                          # progress_bar=args.progress_bar)
+    model.initialize(train_set)
+    for X, y in train_set:
+        pred = model.fprop(X, inference=True).transpose().get()
+        targets = y.transpose().get()
+        break
+    p = np.argmax(pred, axis=1)
+    t = np.argmax(targets, axis=1)
+    """
+     What works:
+        * confusion_matrix, unfriendliness_matrix,
+        * spectral, kmeans
+        * soft_sum_cm, requires soft_targets
+        * soft_sum_pred_cm, requires soft_targets
+
+    What doesn't work:
+        * soft_n_pred_cm, (Won't be done)
+        * greedy_clustering, needs unfriendliness_matrix !
+        * greedy_clustering_overlapping, needs unfriendliness_matrix !
+
+    """
+    cm = confusion_matrix(t, p)
+    cm = clean_cm(cm)
+    cm = unfriendliness_matrix(cm)
+    print greedy_clustering(cm, 3)
 
 
-    # sdata = SpecialistDataset(dataset='cifar100', experiment=experiment)
 
     # To try when generating sets:
     # - overlapping vs no-overlapping
