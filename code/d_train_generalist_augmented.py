@@ -50,15 +50,15 @@ if __name__ == '__main__':
     # Setup Data Augmentation:
     print 'Setting up data augmentation...'
     augmenter = ImageDataGenerator(
-        featurewise_center=True,  # set input mean to 0 over the dataset
+        featurewise_center=False,  # set input mean to 0 over the dataset
         samplewise_center=False,  # set each sample mean to 0
-        featurewise_std_normalization=True,  # divide inputs by std of the dataset
+        featurewise_std_normalization=False,  # divide inputs by std of the dataset
         samplewise_std_normalization=False,  # divide each input by its std
-        zca_whitening=True,  # apply ZCA whitening
-        rotation_range=20,  # randomly rotate images in the range (degrees, 0 to 180)
-        width_shift_range=0.2,  # randomly shift images horizontally (fraction of total width)
-        height_shift_range=0.2,  # randomly shift images vertically (fraction of total height)
-        horizontal_flip=True,  # randomly flip images
+        zca_whitening=False,  # apply ZCA whitening
+        rotation_range=0,  # randomly rotate images in the range (degrees, 0 to 180)
+        width_shift_range=0.,  # randomly shift images horizontally (fraction of total width)
+        height_shift_range=0.,  # randomly shift images vertically (fraction of total height)
+        horizontal_flip=False,  # randomly flip images
         vertical_flip=False,  # randomly flip images
     )
 
@@ -101,18 +101,22 @@ if __name__ == '__main__':
         # Data Augmentation
         print 'Augmenting Data...'
         X_train_augmented = np.empty(X_train_keras.shape)
-        y_train_augmented = np.emtpy(y_train.shape)
+        y_train_augmented = np.empty(y_train.shape)
         for X, y in augmenter.flow(X_train_keras, y_train):
             X_train_augmented = np.vstack((X_train_augmented, X))
             y_train_augmented = np.vstack((y_train_augmented, y))
+        print 'Reshaping augmented batch...'
         X_train_augmented = X_train_augmented.reshape(X_train_augmented.shape[0], 3072)
+
+        print 'Creating iterator...'
+        train_set = DataIterator(X_train_augmented, y_train_augmented, nclass=nout, lshape=(3, 32, 32))
 
         if not VALIDATION:
             callbacks = Callbacks(model, train_set, output_file=args.output_file,
                             valid_set=test_set, valid_freq=args.validation_freq,
                             progress_bar=args.progress_bar)
 
-        train_set = DataIterator(X_train_augmented, y_train_augmented, nclass=nout, lshape=(3, 32, 32))
+        print 'Fitting data...'
         model._epoch_fit(train_set, callbacks)
 
         callbacks.on_epoch_end(model.epoch_index)

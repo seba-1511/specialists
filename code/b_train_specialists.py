@@ -15,7 +15,7 @@ from neon.util.persist import save_obj
 from neon.transforms.cost import Misclassification
 from neon.callbacks.callbacks import Callbacks
 
-from a_train_generalist import split_train_set, EXPERIMENT_DIR
+from a_train_generalist import split_train_set, EXPERIMENT_DIR, DATASET_NAME
 from cifar_net import get_custom_vgg, get_allconv, get_dummy
 from specialist import SpecialistDataset
 
@@ -35,18 +35,21 @@ def filter_dataset(X, y, cluster):
     return (new_X, new_y, len(cluster))
 
 
+
+
 if __name__ == '__main__':
     # hyperparameters
     batch_size = 64
     num_epochs = args.epochs
     num_epochs = 74 if num_epochs == 10 else num_epochs
     rng_seed = 1234
-    num_clusters = 4
+    num_clusters = 3
     clustering_name = 'kmeans'
-    confusion_matrix_name = 'soft_sum_pred_cm'
-    spec_net = get_custom_vgg
-    gene_net = get_allconv
-    gene_archive = 'allconv.prm'
+    confusion_matrix_name = 'standard'
+    friendliness = False
+    spec_net = get_allconv
+    gene_net = get_custom_vgg
+    gene_archive = 'generalist_val.prm'
 
     # setup backend
     be = gen_backend(
@@ -67,6 +70,7 @@ if __name__ == '__main__':
     # Get generalist predictions
     gene_path = EXPERIMENT_DIR + gene_archive
     generalist, opt, cost = gene_net(archive_path=gene_path, nout=nout)
+    generalist.initialize(valid_set)
     gene_preds = []
     gene_targets = []
     for X, y in valid_set:
@@ -78,7 +82,6 @@ if __name__ == '__main__':
     gene_targets = np.array(gene_targets)
 
     # Compute the clusters
-    # TODO: Fix clustering, it doesn't work.
     clustering = SpecialistDataset.clustering_methods[clustering_name]
     confusion_matrix = SpecialistDataset.cm_types[confusion_matrix_name]
     clusters = SpecialistDataset.cluster_classes(
@@ -87,6 +90,7 @@ if __name__ == '__main__':
         clustering=clustering,
         cm=confusion_matrix,
         nb_clusters=num_clusters,
+        friendly=friendliness,
     )
     del gene_preds
     del gene_targets
@@ -99,6 +103,7 @@ if __name__ == '__main__':
 
     # Train each specialist
     for i, cluster in enumerate(clusters):
+        print 'Training specialist: ', i
 
         # Create datasets
         X_spec, y_spec, spec_out = filter_dataset(X_train, y_train, cluster)
@@ -110,11 +115,13 @@ if __name__ == '__main__':
             X_spec_test, y_spec_test, nclass=nout, lshape=(3, 32, 32))
 
         # Train the specialist
+        # TODO: Load from archive so that the net is pre-trained
         specialist, opt, cost = spec_net(nout=nout)
         callbacks = Callbacks(
             specialist, spec_set, output_file=args.output_file,
                              valid_set=spec_test, valid_freq=args.validation_freq,
-                          progress_bar=args.progress_bar)
+                          progress_bar=False)
+        # TODO: Add early stopping callback to make sure no oevrfitting.
         specialist.fit(spec_set, optimizer=opt,
                        num_epochs=num_epochs, cost=cost, callbacks=callbacks)
 

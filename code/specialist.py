@@ -90,8 +90,8 @@ def plot_confusion_matrix(cm, title='Confusion matrix', cmap=plt.cm.Blues):
 
 def soft_sum_cm(targets, preds):
     """
-        Return a confusion matrix, containing the sum of all probabilities for
-        a given class.
+    Return a confusion matrix, containing the sum of all probabilities for
+    a given class.
    """
     N = max(targets) + 1
     nb_preds = len(preds)
@@ -105,6 +105,10 @@ def soft_sum_cm(targets, preds):
         cm[label] += entry
     return cm
 
+def confuse_cm(targets, preds):
+    # targets = np.argmax(targets, axis=1)
+    preds = np.argmax(preds, axis=1)
+    return confusion_matrix(targets, preds)
 
 def soft_sum_pred_cm(targets, preds):
     """
@@ -295,86 +299,25 @@ class SpecialistDataset(object):
         'kmeans': kmeans_clustering,
     }
     cm_types = {
-        'standard': confusion_matrix,
+        'standard': confuse_cm,
         'soft_sum': soft_sum_cm,
         'soft_sum_pred_cm': soft_sum_pred_cm,
         'soft_sum_n_pred': soft_sum_n_pred_cm,
     }
 
-    def __init__(self, dataset=None, nb_clusters=5, cluster=0,
-                 confusion_matrix='soft_sum_pred_cm', clustering='greedy',
-                 experiment_path='', repo_path='~/data', full_predictions=False,
-                 **kwargs):
-        """
-            dataset: which dataset to sub-set, should be a Dataset() instance.
-            nb_clusters: total number of clusters.
-            cluster: which cluster to use for this current experiment.
-            model: which model to load to perform clustering.
-        """
-        self.repo_path = repo_path
-        self.__dict__ = dataset.__dict__
-        self.dataset = dataset
-        self.nb_clusters = nb_clusters
-        self.cluster = cluster
-        self.confusion_matrix = self.cm_types[confusion_matrix]
-        self.clustering = self.clustering_methods[clustering]
-        # TODO: Make sure that this works:
-        self.model = deserialize(experiment_path).model
-        self.model.set_params(deserialize(self.model.serialized_path))
-        self.full_predictions = full_predictions
-
     @classmethod
     def cluster_classes(cls, targets, probs, cm=None, nb_clusters=5,
-                        clustering=None):
+                        clustering=None, friendly=True):
         cm = cm if cm else cls.cm_types['soft_sum_pred_cm']
         clustering = clustering if clustering else cls.clustering_methods[
             'greedy']
         cm = cm(targets, probs)
         cm = clean_cm(cm)
-        friendliness = unfriendliness_matrix(cm)
-        cluster = clustering(friendliness, nb_clusters)
+        if friendly:
+            cm = unfriendliness_matrix(cm)
+        cluster = clustering(cm, nb_clusters)
         return [list(c) for c in cluster]
 
-    def load(self, backend, experiment):
-        self.dataset.load(backend, experiment)
-        valid_probs, valid_targets = self.model.predict_fullset(self.dataset,
-                                                                'validation')
-        cluster = SpecialistDataset.cluster_classes(valid_targets, valid_probs,
-                                                    cm=self.confusion_matrix,
-                                                    nb_clusters=self.nb_clusters,
-                                                    clustering=self.clustering)[self.cluster]
-        cluster = list(cluster)
-        n_classes = len(cluster)
-        print '\n\nNumber of classes: ', n_classes, '\n\n'
-        new_inputs = []
-        new_targets = []
-        for bi, bt in izip(self.dataset.inputs['train'], self.dataset.targets['train']):
-            bi = bi.asnumpyarray().transpose()
-            bt = bt.asnumpyarray().transpose()
-            for i, t in izip(bi, bt):
-                if np.argmax(t) in cluster:
-                    clss = np.argmax(t)
-                    clss = cluster.index(clss)
-                    new_inputs.append(i)
-                    new_targets.append(to_one_hot(clss, n_classes))
-        self.dataset.inputs['train'] = np.array(new_inputs)
-        self.dataset.targets['train'] = np.array(new_targets)
-        new_inputs = []
-        new_targets = []
-        for bi, bt in izip(self.dataset.inputs['test'], self.dataset.targets['test']):
-            bi = bi.asnumpyarray().transpose()
-            bt = bt.asnumpyarray().transpose()
-            for i, t in izip(bi, bt):
-                if np.argmax(t) in cluster or self.full_predictions:
-                    clss = np.argmax(t)
-                    clss = cluster.index(clss) if clss in cluster else 0
-                    new_inputs.append(i)
-                    new_targets.append(to_one_hot(clss, n_classes))
-        self.dataset.inputs['test'] = np.array(new_inputs)
-        self.dataset.targets['test'] = np.array(new_targets)
-        self.inputs = self.dataset.inputs
-        self.targets = self.dataset.targets
-        self.format()
 
 
 if __name__ == '__main__':

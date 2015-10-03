@@ -22,9 +22,9 @@ from cifar_net import get_custom_vgg, get_allconv, get_dummy
 parser = NeonArgparser(__doc__)
 args = parser.parse_args()
 
-DATASET_NAME = 'cifar100'
+DATASET_NAME = 'cifar10'
 EXPERIMENT_DIR = 'experiments/' + DATASET_NAME + '/'
-VALIDATION = False
+VALIDATION = True
 
 
 def split_train_set(X_train, y_train):
@@ -32,7 +32,7 @@ def split_train_set(X_train, y_train):
 
 if __name__ == '__main__':
     # hyperparameters
-    batch_size = 64
+    batch_size = 128
     num_epochs = args.epochs
     num_epochs = 74 if num_epochs == 10 else num_epochs
     rng_seed = 1234
