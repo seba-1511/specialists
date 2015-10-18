@@ -5,6 +5,7 @@
 This file is an experiment that will train a specified generalist network.
 """
 
+import random
 import numpy as np
 
 from neon.backends import gen_backend
@@ -24,7 +25,7 @@ args = parser.parse_args()
 
 DATASET_NAME = 'cifar10'
 EXPERIMENT_DIR = 'experiments/' + DATASET_NAME + '/'
-VALIDATION = True
+VALIDATION = False
 
 
 def split_train_set(X_train, y_train):
@@ -36,6 +37,8 @@ if __name__ == '__main__':
     num_epochs = args.epochs
     num_epochs = 74 if num_epochs == 10 else num_epochs
     rng_seed = 1234
+    np.random.seed(rng_seed)
+    random.seed(rng_seed)
 
     # setup backend
     be = gen_backend(

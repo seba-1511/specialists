@@ -117,6 +117,7 @@ if __name__ == '__main__':
                             progress_bar=args.progress_bar)
 
         print 'Fitting data...'
+        model.initialize(train_set, cost)
         model._epoch_fit(train_set, callbacks)
 
         callbacks.on_epoch_end(model.epoch_index)
