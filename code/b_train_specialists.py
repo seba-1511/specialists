@@ -26,13 +26,14 @@ args = parser.parse_args()
 
 
 def filter_dataset(X, y, cluster):
-    new_X = np.empty((0, X.shape[1]))
-    new_y = np.empty((0, y.shape[1]))
-    for c in cluster:
-        idx = y == c
-        idx = idx[:, 0]
-        new_X = np.vstack((new_X, X[idx]))
-        new_y = np.vstack((new_y, y[idx]))
+    new_X = []
+    new_y = []
+    for x, label in zip(X, y):
+        if label in cluster:
+            new_X.append(x)
+            new_y.append(label)
+    new_X = np.array(new_X)
+    new_y = np.array(new_y)
     return (new_X, new_y, len(cluster))
 
 if __name__ == '__main__':
@@ -49,7 +50,7 @@ if __name__ == '__main__':
     friendliness = False
     gene_net = get_custom_vgg
     gene_archive = 'generalist_val.prm'
-    spec_net = get_mini_custom
+    spec_net = gene_net
 
     # setup backend
     be = gen_backend(
@@ -101,6 +102,8 @@ if __name__ == '__main__':
     X_train = np.vstack((X_train, X_valid))
     y_train = np.vstack((y_train, y_valid))
 
+    clusters = [range(10)]
+    print clusters
     # Train each specialist
     for i, cluster in enumerate(clusters):
         print 'Training specialist: ', i
@@ -120,12 +123,9 @@ if __name__ == '__main__':
         # specialist, opt, cost = spec_net(nout=spec_out, archive_path=gene_path)
         specialist, opt, cost = spec_net(nout=spec_out)
         # specialist.epoch_index = 0
-        opt.optimizer_mapping['default'].learning_rate *= 0.01
-        opt.optimizer_mapping['Bias'].learning_rate *= 0.01
-        callbacks = Callbacks(
-            specialist, spec_set, output_file=args.output_file,
-                             valid_set=spec_test, valid_freq=args.validation_freq,
-                             progress_bar=True)
+        # opt.optimizer_mapping['default'].learning_rate *= 0.01
+        # opt.optimizer_mapping['Bias'].learning_rate *= 0.01
+        callbacks = Callbacks(specialist, spec_set, args, eval_set=spec_test)
         # TODO: Add early stopping callback to make sure no overfitting.
         specialist.fit(spec_set, optimizer=opt,
                        num_epochs=specialist.epoch_index + num_epochs, cost=cost, callbacks=callbacks)

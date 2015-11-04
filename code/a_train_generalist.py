@@ -17,7 +17,7 @@ from neon.util.persist import save_obj
 
 from keras.datasets import cifar100
 
-from cifar_net import get_custom_vgg, get_allconv, get_dummy
+from cifar_net import get_custom_vgg
 
 # parse the command line arguments
 parser = NeonArgparser(__doc__)
@@ -57,6 +57,22 @@ if __name__ == '__main__':
         X_train = X_train.reshape(50000, 3072)
         X_test = X_test.reshape(10000, 3072)
         nout = 128
+    elif DATASET_NAME == 'svhn':
+        from scipy.io import loadmat
+        train = loadmat('../data/svhm_train.mat')
+        test = loadmat('../data/svhn_test.mat')
+        (X_train, y_train), (X_test, y_test) = (train['X'], train['y']), (test['X'], test['y'])
+        s = X_train.shape
+        X_train = X_train.reshape(-1, s[-1]).transpose()
+        s = X_test.shape
+        X_test = X_test.reshape(-1, s[-1]).transpose()
+        temp = np.empty(X_train.shape, dtype=np.uint)
+        np.copyto(temp, X_train)
+        X_train = temp
+        temp = np.empty(X_test.shape, dtype=np.uint)
+        np.copyto(temp, X_test)
+        X_test = temp
+        nout = 16
 
     if VALIDATION:
         (X_train, y_train), (X_valid, y_valid) = split_train_set(X_train, y_train)
@@ -65,14 +81,10 @@ if __name__ == '__main__':
     train_set = DataIterator(X_train, y_train, nclass=nout, lshape=(3, 32, 32))
     test_set = DataIterator(X_test, y_test, nclass=nout, lshape=(3, 32, 32))
 
-    callbacks = Callbacks(model, train_set, output_file=args.output_file,
-                          valid_set=test_set, valid_freq=args.validation_freq,
-                          progress_bar=args.progress_bar)
+    callbacks = Callbacks(model, train_set, args, eval_set=test_set)
     if VALIDATION:
         valid_set = DataIterator(X_valid, y_valid, nclass=nout, lshape=(3, 32, 32))
-        callbacks = Callbacks(model, train_set, output_file=args.output_file,
-                            valid_set=valid_set, valid_freq=args.validation_freq,
-                            progress_bar=args.progress_bar)
+        callbacks = Callbacks(model, train_set, args, eval_set=valid_set)
 
     model.fit(train_set, optimizer=opt, num_epochs=num_epochs, cost=cost, callbacks=callbacks)
 

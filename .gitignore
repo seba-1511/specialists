@@ -60,3 +60,4 @@ target/
 code/saved_models/*
 code/inferences/*
 code/saved_experiments/*
+data/*
