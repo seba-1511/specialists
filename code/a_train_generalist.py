@@ -25,7 +25,7 @@ args = parser.parse_args()
 
 DATASET_NAME = 'cifar10'
 EXPERIMENT_DIR = 'experiments/' + DATASET_NAME + '/'
-VALIDATION = False
+VALIDATION = True
 
 
 def split_train_set(X_train, y_train):
