@@ -112,12 +112,9 @@ if __name__ == '__main__':
             X_spec_test, y_spec_test, nclass=spec_out, lshape=(3, 32, 32))
 
         # Train the specialist
-        # TODO: Load from archive so that the net is pre-trained
         specialist, opt, cost = spec_net(nout=spec_out, archive_path=gene_path)
-        # specialist, opt, cost = spec_net(nout=spec_out)
-        # specialist.epoch_index = 0
-        opt.optimizer_mapping['default'].learning_rate *= 0.01
-        opt.optimizer_mapping['Bias'].learning_rate *= 0.01
+        # opt.optimizer_mapping['default'].learning_rate *= 0.01
+        # opt.optimizer_mapping['Bias'].learning_rate *= 0.01
         callbacks = Callbacks(specialist, spec_set, args, eval_set=spec_test)
         # TODO: Add early stopping callback to make sure no overfitting.
         specialist.fit(spec_set, optimizer=opt,
