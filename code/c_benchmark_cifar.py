@@ -38,7 +38,7 @@ def weighted_preds_merge(gene_preds, spec_preds, clusters, g_weight, s_weight):
 
 if __name__ == '__main__':
     # hyperparameters
-    batch_size = 128
+    batch_size = 64
     rng_seed = 1234
     np.random.seed(rng_seed)
     random.seed(rng_seed)

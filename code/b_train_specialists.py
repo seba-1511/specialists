@@ -50,7 +50,7 @@ def filter_dataset(X, y, cluster):
 
 if __name__ == '__main__':
     # hyperparameters
-    batch_size = 128
+    batch_size = 64
     num_epochs = args.epochs
     num_epochs = 74 if num_epochs == 10 else num_epochs
     rng_seed = 1234
