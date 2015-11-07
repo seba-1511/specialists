@@ -29,7 +29,7 @@ args = parser.parse_args()
 def weighted_preds_merge(gene_preds, spec_preds, clusters, g_weight, s_weight):
     preds = g_weight * gene_preds
     for i, pred in enumerate(preds):
-        p = np.argmax(pred, axis=1)
+        p = np.argmax(pred)
         for j, c in enumerate(clusters):
             if p in c:
                 preds[i] += s_weight * spec_preds[j][i]
@@ -38,7 +38,7 @@ def weighted_preds_merge(gene_preds, spec_preds, clusters, g_weight, s_weight):
 
 if __name__ == '__main__':
     # hyperparameters
-    batch_size = 64
+    batch_size = 128
     rng_seed = 1234
     np.random.seed(rng_seed)
     random.seed(rng_seed)
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     confusion_matrix_name = 'standard'
     spec_net = get_custom_vgg
     gene_net = get_custom_vgg
-    gene_archive = 'allconv.prm'
+    gene_archive = 'generalist_val.prm'
 
     # setup backend
     be = gen_backend(
@@ -61,6 +61,7 @@ if __name__ == '__main__':
     # Load and split datasets
     (X_train, y_train), (X_test, y_test), nout = load_cifar10(path=args.data_dir)
     (X_train, y_train), (X_valid, y_valid) = split_train_set(X_train, y_train)
+    nout = 16
     test_set = DataIterator(X_test, y_test, nclass=nout, lshape=(3, 32, 32))
     valid_set = DataIterator(X_valid, y_valid, nclass=nout, lshape=(3, 32, 32))
 
@@ -94,18 +95,26 @@ if __name__ == '__main__':
     specialists = []
     for c in range(num_clusters):
         path = EXPERIMENT_DIR + confusion_matrix_name + '_' + clustering_name + '_' + str(num_clusters) + 'clusters/' + 'specialist' + '_' + str(c) + '.prm'
-        specialists.append(spec_net(archive_path=path))
+        s, opt, cost = spec_net(archive_path=path, nout=nout)
+        s.cost = cost
+        s.optimizer = opt
+        s.initialize(test_set, cost)
+        specialists.append(s)
 
     # Merge all predictions together
-    final_targets = np.empty((1, 1))
+    final_targets = y_test
     gene_preds = generalist.get_outputs(test_set)
     spec_preds = [s.get_outputs(test_set) for s in specialists]
     final_preds = weighted_preds_merge(gene_preds, spec_preds, clusters, 0.5, 0.5)
 
+    nclasses = np.max(final_targets) + 1
+    gene_preds = gene_preds[:, :nclasses]
+    final_preds = final_preds[:, :nclasses]
+
     # Print scores
-    acc = accuracy_score(final_targets, final_preds)
+    acc = accuracy_score(final_targets, np.argmax(final_preds, axis=1))
     ll = log_loss(final_targets, final_preds)
-    gene_acc = accuracy_score(final_targets, gene_preds)
+    gene_acc = accuracy_score(final_targets, np.argmax(gene_preds, axis=1))
     gene_ll = log_loss(final_targets, gene_preds)
     print '-'*40
     print 'Generalist Accuracy: ', gene_acc
@@ -113,3 +122,4 @@ if __name__ == '__main__':
     print '-'*40
     print 'Final Accuracy: ', acc
     print 'Final LogLoss: ', ll
+    print '-'*40
