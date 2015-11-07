@@ -126,6 +126,6 @@ if __name__ == '__main__':
         print 'Generalist Train misclassification error: ', generalist.eval(spec_set, metric=Misclassification())
         print 'Generalist Test misclassification error: ', generalist.eval(spec_test, metric=Misclassification())
         specialists.append(specialist)
-        save_obj(specialist.serialize(), EXPERIMENT_DIR + 'specialist' + str(i) + '_' +
-                 confusion_matrix_name + '_' + clustering_name + '_' + str(num_clusters) + 'clusters.prm')
+        path = EXPERIMENT_DIR + confusion_matrix_name + '_' + clustering_name + '_' + str(num_clusters) + 'clusters/' + 'specialist' + '_' + str(i) + '.prm'
+        save_obj(specialist.serialize(), path)
 
