@@ -32,6 +32,34 @@ def split_train_set(X_train, y_train):
     return (X_train[:-5000], y_train[:-5000]), (X_train[-5000:], y_train[-5000:])
 
 
+def load_data(name):
+    if name == 'cifar10':
+        (X_train, y_train), (X_test, y_test), nout = load_cifar10(path=args.data_dir)
+        nout = 16
+    elif name == 'cifar100':
+        (X_train, y_train), (X_test, y_test) = cifar100.load_data(label_mode='fine')
+        X_train = X_train.reshape(50000, 3072)
+        X_test = X_test.reshape(10000, 3072)
+        nout = 128
+    elif name == 'svhn':
+        from scipy.io import loadmat
+        train = loadmat('../data/svhm_train.mat')
+        test = loadmat('../data/svhn_test.mat')
+        (X_train, y_train), (X_test, y_test) = (train['X'], train['y']), (test['X'], test['y'])
+        s = X_train.shape
+        X_train = X_train.reshape(-1, s[-1]).transpose()
+        s = X_test.shape
+        X_test = X_test.reshape(-1, s[-1]).transpose()
+        temp = np.empty(X_train.shape, dtype=np.uint)
+        np.copyto(temp, X_train)
+        X_train = temp
+        temp = np.empty(X_test.shape, dtype=np.uint)
+        np.copyto(temp, X_test)
+        X_test = temp
+        nout = 16
+    return (X_train, y_train), (X_test, y_test), nout
+
+
 if __name__ == '__main__':
     # hyperparameters
     batch_size = 128
@@ -50,30 +78,7 @@ if __name__ == '__main__':
         default_dtype=args.datatype,
     )
 
-    if DATASET_NAME == 'cifar10':
-        (X_train, y_train), (X_test, y_test), nout = load_cifar10(path=args.data_dir)
-        nout = 16
-    elif DATASET_NAME == 'cifar100':
-        (X_train, y_train), (X_test, y_test) = cifar100.load_data(label_mode='fine')
-        X_train = X_train.reshape(50000, 3072)
-        X_test = X_test.reshape(10000, 3072)
-        nout = 128
-    elif DATASET_NAME == 'svhn':
-        from scipy.io import loadmat
-        train = loadmat('../data/svhm_train.mat')
-        test = loadmat('../data/svhn_test.mat')
-        (X_train, y_train), (X_test, y_test) = (train['X'], train['y']), (test['X'], test['y'])
-        s = X_train.shape
-        X_train = X_train.reshape(-1, s[-1]).transpose()
-        s = X_test.shape
-        X_test = X_test.reshape(-1, s[-1]).transpose()
-        temp = np.empty(X_train.shape, dtype=np.uint)
-        np.copyto(temp, X_train)
-        X_train = temp
-        temp = np.empty(X_test.shape, dtype=np.uint)
-        np.copyto(temp, X_test)
-        X_test = temp
-        nout = 16
+    (X_train, y_train), (X_test, y_test), nout = load_data(DATASET_NAME)
 
     if VALIDATION:
         (X_train, y_train), (X_valid, y_valid) = split_train_set(X_train, y_train)

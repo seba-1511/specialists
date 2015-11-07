@@ -17,7 +17,7 @@ from neon.callbacks.callbacks import Callbacks
 
 from sklearn.metrics import log_loss, accuracy_score
 
-from a_train_generalist import split_train_set, EXPERIMENT_DIR
+from a_train_generalist import split_train_set, EXPERIMENT_DIR, DATASET_NAME, load_data
 from cifar_net import get_custom_vgg, get_allconv, get_dummy
 from specialist import SpecialistDataset
 
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     )
 
     # Load and split datasets
-    (X_train, y_train), (X_test, y_test), nout = load_cifar10(path=args.data_dir)
+    (X_train, y_train), (X_test, y_test), nout = load_data(DATASET_NAME)
     (X_train, y_train), (X_valid, y_valid) = split_train_set(X_train, y_train)
     nout = 16
     test_set = DataIterator(X_test, y_test, nclass=nout, lshape=(3, 32, 32))
