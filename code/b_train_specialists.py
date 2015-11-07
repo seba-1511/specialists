@@ -24,6 +24,19 @@ parser = NeonArgparser(__doc__)
 args = parser.parse_args()
 
 
+def early_stop(params, valid):
+    if params is None:
+        prev_min, time_length = np.inf, 0
+    else:
+        prev_min, time_length = params
+    if prev_min < valid:
+        time_length += 1
+    else:
+        time_length = 0
+    prev_min = min(prev_min, valid)
+    return ((prev_min, time_length), time_length >= 3)
+
+
 def filter_dataset(X, y, cluster):
     new_X = []
     new_y = []
@@ -100,6 +113,7 @@ if __name__ == '__main__':
     # Train each specialist
     for i, cluster in enumerate(clusters):
         print 'Training specialist: ', i
+        path = EXPERIMENT_DIR + confusion_matrix_name + '_' + clustering_name + '_' + str(num_clusters) + 'clusters/' + 'specialist' + '_' + str(i) + '.prm'
 
         # Create datasets
         X_spec, y_spec, spec_out = filter_dataset(X_train, y_train, cluster)
@@ -113,10 +127,9 @@ if __name__ == '__main__':
 
         # Train the specialist
         specialist, opt, cost = spec_net(nout=spec_out, archive_path=gene_path)
-        # opt.optimizer_mapping['default'].learning_rate *= 0.01
-        # opt.optimizer_mapping['Bias'].learning_rate *= 0.01
         callbacks = Callbacks(specialist, spec_set, args, eval_set=spec_test)
-        # TODO: Add early stopping callback to make sure no overfitting.
+        callbacks.add_early_stop_callback(early_stop)
+        callbacks.add_save_best_state_callback(path)
         specialist.fit(spec_set, optimizer=opt,
                        num_epochs=specialist.epoch_index + num_epochs, cost=cost, callbacks=callbacks)
 
@@ -126,6 +139,5 @@ if __name__ == '__main__':
         print 'Generalist Train misclassification error: ', generalist.eval(spec_set, metric=Misclassification())
         print 'Generalist Test misclassification error: ', generalist.eval(spec_test, metric=Misclassification())
         specialists.append(specialist)
-        path = EXPERIMENT_DIR + confusion_matrix_name + '_' + clustering_name + '_' + str(num_clusters) + 'clusters/' + 'specialist' + '_' + str(i) + '.prm'
         save_obj(specialist.serialize(), path)
 
