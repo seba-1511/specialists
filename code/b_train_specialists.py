@@ -58,7 +58,7 @@ if __name__ == '__main__':
     random.seed(rng_seed)
     num_clusters = 3
     clustering_name = 'spectral'
-    confusion_matrix_name = 'standard'
+    confusion_matrix_name = 'soft_sum_not_pred_cm'
     friendliness = False
     gene_net = get_custom_vgg
     gene_archive = 'generalist_val.prm'

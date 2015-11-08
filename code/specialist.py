@@ -94,21 +94,17 @@ def soft_sum_cm(targets, preds):
     a given class.
    """
     N = max(targets) + 1
-    nb_preds = len(preds)
-    placeholder = np.zeros(nb_preds)
     cm = np.zeros((N, N))
-    for label in xrange(N):
-        entry = []
-        for i in xrange(N):
-            values = np.where(targets == label, preds[:, i], placeholder)
-            entry.append(sum(values))
-        cm[label] += entry
+    for pred, label in zip(preds, targets):
+        cm[label, :] += pred[:N]
     return cm
+
 
 def confuse_cm(targets, preds):
     # targets = np.argmax(targets, axis=1)
     preds = np.argmax(preds, axis=1)
     return confusion_matrix(targets, preds)
+
 
 def soft_sum_pred_cm(targets, preds):
     """
@@ -116,17 +112,20 @@ def soft_sum_pred_cm(targets, preds):
         of prediction probabilities, only when this class was predicted.
     """
     N = max(targets) + 1
-    nb_preds = len(preds)
-    placeholder = np.zeros(nb_preds)
     cm = np.zeros((N, N))
-    for label in xrange(N):
-        entry = []
-        for i in xrange(N):
-            values = np.where(targets == label, preds[:, i], placeholder)
-            values = np.where(
-                label == np.argmax(preds, axis=1), values, placeholder)
-            entry.append(sum(values))
-        cm[label] += entry
+    for pred, label in zip(preds, targets):
+        if np.argmax(pred) == label:
+            cm[label, :] += pred[:N]
+    return cm
+
+
+def soft_sum_not_pred_cm(targets, preds):
+    N = max(targets) + 1
+    cm = np.zeros((N, N))
+    for pred, label in zip(preds, targets):
+        if np.argmax(pred) != label:
+            cm[label, :] += pred[:N]
+    import pdb; pdb.set_trace()
     return cm
 
 
@@ -302,6 +301,7 @@ class SpecialistDataset(object):
         'standard': confuse_cm,
         'soft_sum': soft_sum_cm,
         'soft_sum_pred_cm': soft_sum_pred_cm,
+        'soft_sum_not_pred_cm': soft_sum_not_pred_cm,
         'soft_sum_n_pred': soft_sum_n_pred_cm,
     }
 

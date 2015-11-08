@@ -42,7 +42,7 @@ if __name__ == '__main__':
     rng_seed = 1234
     np.random.seed(rng_seed)
     random.seed(rng_seed)
-    num_clusters = 3
+    num_clusters = 2
     clustering_name = 'spectral'
     confusion_matrix_name = 'standard'
     spec_net = get_custom_vgg
@@ -61,7 +61,6 @@ if __name__ == '__main__':
     # Load and split datasets
     (X_train, y_train), (X_test, y_test), nout = load_data(DATASET_NAME)
     (X_train, y_train), (X_valid, y_valid) = split_train_set(X_train, y_train)
-    nout = 16
     test_set = DataIterator(X_test, y_test, nclass=nout, lshape=(3, 32, 32))
     valid_set = DataIterator(X_valid, y_valid, nclass=nout, lshape=(3, 32, 32))
 
@@ -76,7 +75,6 @@ if __name__ == '__main__':
     print 'Generalist score: ', accuracy_score(gene_targets, np.argmax(gene_preds, axis=1))
 
     # Compute the clusters
-    # TODO: Fix clustering, it doesn't work.
     clustering = SpecialistDataset.clustering_methods[clustering_name]
     confusion_matrix = SpecialistDataset.cm_types[confusion_matrix_name]
     clusters = SpecialistDataset.cluster_classes(

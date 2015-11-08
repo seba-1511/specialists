@@ -63,9 +63,9 @@ if __name__ == '__main__':
     clustering_name = 'spectral'
     confusion_matrix_name = 'standard'
     for confusion_matrix_name in ['standard', ]:
-        for clustering_name in ['spectral', 'kmeans', ]:
+        for clustering_name in ['kmeans', 'spectral', ]:
             # for num_clusters in xrange(2, 30, 2):
-            for num_clusters in xrange(5, 6, 2):
+            for num_clusters in xrange(2, 6, 1):
                 np.random.seed(rng_seed)
                 random.seed(rng_seed)
 
