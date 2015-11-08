@@ -125,7 +125,6 @@ def soft_sum_not_pred_cm(targets, preds):
     for pred, label in zip(preds, targets):
         if np.argmax(pred) != label:
             cm[label, :] += pred[:N]
-    import pdb; pdb.set_trace()
     return cm
 
 
