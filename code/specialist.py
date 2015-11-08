@@ -299,8 +299,8 @@ class SpecialistDataset(object):
     cm_types = {
         'standard': confuse_cm,
         'soft_sum': soft_sum_cm,
-        'soft_sum_pred_cm': soft_sum_pred_cm,
-        'soft_sum_not_pred_cm': soft_sum_not_pred_cm,
+        'soft_sum_pred': soft_sum_pred_cm,
+        'soft_sum_not_pred': soft_sum_not_pred_cm,
         'soft_sum_n_pred': soft_sum_n_pred_cm,
     }
 
