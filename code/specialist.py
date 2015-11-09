@@ -322,8 +322,10 @@ def greedy_singles(cm, M):
             scores[clss] = 0
     return clusters
 
+
 def pair_score(a, b, adv, cluster):
-    return 0
+    return (single_score(a, adv, cluster) + single_score(b, adv, cluster)) / 2.0
+
 
 def greedy_pairs(cm, M):
     # N classes, M clusters
@@ -340,21 +342,22 @@ def greedy_pairs(cm, M):
     clusters = []
     seen = set()
     # Init the clusters so that non-empty
-    for i in xrange(M):
+    while len(clusters) != M:
         _, a, b = adverse.pop()
         if a in seen or b in seen:
+            adverse.insert(0, (_, a, b))
             continue
         seen.add(a)
         seen.add(b)
-        clusters.append([a, b, ])
+        clusters.append(set([a, b, ]))
+    adverse = sorted(adverse, key=lambda s: s[0])
     # Fill with remaining classes:
-    while len(adverse) == 0:
+    while len(adverse) != 0:
         _, a, b = adverse.pop()
         c = np.argmin([pair_score(a, b, adv, c) for c in clusters])
-        clusters[c].append(a)
-        clusters[c].append(b)
-    import pdb; pdb.set_trace()
-    return clusters
+        clusters[c].add(a)
+        clusters[c].add(b)
+    return [list(c) for c in clusters]
 
 
 class SpecialistDataset(object):

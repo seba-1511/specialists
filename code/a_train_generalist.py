@@ -23,7 +23,7 @@ from cifar_net import get_custom_vgg
 parser = NeonArgparser(__doc__)
 args = parser.parse_args()
 
-DATASET_NAME = 'cifar10'
+DATASET_NAME = 'cifar100'
 EXPERIMENT_DIR = 'experiments/' + DATASET_NAME + '/'
 VALIDATION = True
 

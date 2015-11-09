@@ -57,7 +57,7 @@ if __name__ == '__main__':
     np.random.seed(rng_seed)
     random.seed(rng_seed)
     num_clusters = 5
-    clustering_name = 'spectral'
+    clustering_name = 'greedy_pairs'
     confusion_matrix_name = 'soft_sum'
     friendliness = False
     gene_net = get_custom_vgg
