@@ -283,6 +283,17 @@ def to_one_hot(i, n_classes):
     return np.array([0 if x != i else 1 for x in xrange(n_classes)])
 
 
+def greedy_singles(cm, N):
+    assert cm.shape[0] == cm.shape[1]
+    adverse = cm + cm.T
+    adverse = [(adverse[i, j], i, j) for j in xrange(i) for i in xrange(N)]
+
+
+
+def greedy_pairs(cm, N):
+    pass
+
+
 class SpecialistDataset(object):
 
     """

@@ -52,7 +52,7 @@ if __name__ == '__main__':
     # hyperparameters
     batch_size = 64
     num_epochs = args.epochs
-    num_epochs = 20
+    num_epochs = 50
     rng_seed = 1234
     friendliness = False
     gene_net = get_custom_vgg
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     num_clusters = 3
     clustering_name = 'spectral'
     confusion_matrix_name = 'standard'
-    for confusion_matrix_name in ['soft_sum_pred', 'soft_sum_not_pred']:
+    for confusion_matrix_name in ['soft_sum', 'soft_sum_pred']:
         for clustering_name in ['kmeans', 'spectral', ]:
             # for num_clusters in xrange(2, 30, 2):
             for num_clusters in xrange(2, 5, 1):
@@ -141,6 +141,6 @@ if __name__ == '__main__':
                     print 'Specialist Test misclassification error: ', specialist.eval(spec_test, metric=Misclassification())
                     print 'Generalist Train misclassification error: ', generalist.eval(spec_set, metric=Misclassification())
                     print 'Generalist Test misclassification error: ', generalist.eval(spec_test, metric=Misclassification())
-                    specialists.append(specialist)
+                    # specialists.append(specialist)
                     save_obj(specialist.serialize(), path)
 
