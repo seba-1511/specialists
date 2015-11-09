@@ -283,15 +283,78 @@ def to_one_hot(i, n_classes):
     return np.array([0 if x != i else 1 for x in xrange(n_classes)])
 
 
-def greedy_singles(cm, N):
+def single_score(clss, adv, cluster):
+    score = sum([adv[clss, c] for c in cluster])
+    return float(score) / len(cluster)
+
+
+def greedy_singles(cm, M):
+    # N classes, M clusters
+    N = len(cm)
+    # Create and sort pair-scores
     assert cm.shape[0] == cm.shape[1]
-    adverse = cm + cm.T
-    adverse = [(adverse[i, j], i, j) for j in xrange(i) for i in xrange(N)]
+    adv = cm + cm.T
+    adverse = []
+    for i in xrange(N):
+        for j in xrange(i):
+            adverse.append((adv[i, j], i, j))
+    adverse = sorted(adverse, key=lambda s: s[0])
+    # build clusters
+    clusters = []
+    seen = set()
+    while len(clusters) != M:
+        _, a, b = adverse.pop()
+        if a in seen or b in seen:
+            continue
+        seen.add(a)
+        seen.add(b)
+        clusters.append([a, b, ])
+    scores = np.argmax(adv, axis=1)
+    clss = 0
+    for i in seen: scores[i] = 0
+    while len(seen) != N:
+        clss = (clss + 1) % N
+        if clss not in seen and scores[clss] == np.max(scores):
+            score = adv[clss]
+            c = np.argmin([single_score(clss, adv, c) for c in clusters])
+            clusters[c].append(clss)
+            seen.add(clss)
+            scores[clss] = 0
+    return clusters
 
+def pair_score(a, b, adv, cluster):
+    return 0
 
-
-def greedy_pairs(cm, N):
-    pass
+def greedy_pairs(cm, M):
+    # N classes, M clusters
+    N = len(cm)
+    # Create and sort pair-scores
+    assert cm.shape[0] == cm.shape[1]
+    adv = cm + cm.T
+    adverse = []
+    for i in xrange(N):
+        for j in xrange(i):
+            adverse.append((adv[i, j], i, j))
+    adverse = sorted(adverse, key=lambda s: s[0])
+    # build clusters
+    clusters = []
+    seen = set()
+    # Init the clusters so that non-empty
+    for i in xrange(M):
+        _, a, b = adverse.pop()
+        if a in seen or b in seen:
+            continue
+        seen.add(a)
+        seen.add(b)
+        clusters.append([a, b, ])
+    # Fill with remaining classes:
+    while len(adverse) == 0:
+        _, a, b = adverse.pop()
+        c = np.argmin([pair_score(a, b, adv, c) for c in clusters])
+        clusters[c].append(a)
+        clusters[c].append(b)
+    import pdb; pdb.set_trace()
+    return clusters
 
 
 class SpecialistDataset(object):
@@ -306,7 +369,10 @@ class SpecialistDataset(object):
         'overlap_greedy': greedy_clustering_overlapping,
         'spectral': spectral_clustering,
         'kmeans': kmeans_clustering,
+        'greedy_singles': greedy_singles,
+        'greedy_pairs': greedy_pairs,
     }
+
     cm_types = {
         'standard': confuse_cm,
         'soft_sum': soft_sum_cm,
@@ -331,68 +397,6 @@ class SpecialistDataset(object):
 
 
 if __name__ == '__main__':
-    from neon.backends import gen_backend
-    from neon.data import DataIterator, load_cifar10
-    from neon.transforms.cost import Misclassification
-    from neon.callbacks.callbacks import Callbacks
-    from neon.util.argparser import NeonArgparser
-    from cifar_net import *
-    parser = NeonArgparser(__doc__)
-    args = parser.parse_args()
-    # hyperparameters
-    batch_size = 128
-    num_epochs = args.epochs
-    num_epochs = 74 if num_epochs == 10 else num_epochs
-    rng_seed = 1234
-
-    # setup backend
-    be = gen_backend(
-        backend=args.backend,
-        batch_size=batch_size,
-        rng_seed=rng_seed,
-        device_id=args.device_id,
-        default_dtype=args.datatype,
-    )
-    (X_train, y_train), (X_test, y_test), nout = load_cifar10(path=args.data_dir)
-    model, opt, cost = get_custom_vgg(nout=nout)
-
-    train_set = DataIterator(X_train, y_train, nclass=nout, lshape=(3, 32, 32))
-    test_set = DataIterator(X_test, y_test, nclass=nout, lshape=(3, 32, 32))
-
-    # callbacks = Callbacks(model, train_set, output_file=args.output_file,
-                          # valid_set=test_set, valid_freq=args.validation_freq,
-                          # progress_bar=args.progress_bar)
-    model.initialize(train_set)
-    for X, y in train_set:
-        pred = model.fprop(X, inference=True).transpose().get()
-        targets = y.transpose().get()
-        break
-    p = np.argmax(pred, axis=1)
-    t = np.argmax(targets, axis=1)
-    """
-     What works:
-        * confusion_matrix, unfriendliness_matrix,
-        * spectral, kmeans
-        * soft_sum_cm, requires soft_targets
-        * soft_sum_pred_cm, requires soft_targets
-
-    What doesn't work:
-        * soft_n_pred_cm, (Won't be done)
-        * greedy_clustering, needs unfriendliness_matrix !
-        * greedy_clustering_overlapping, needs unfriendliness_matrix !
-
-    """
-    cm = confusion_matrix(t, p)
-    cm = clean_cm(cm)
-    cm = unfriendliness_matrix(cm)
-    print greedy_clustering(cm, 3)
-
-
-
-    # To try when generating sets:
-    # - overlapping vs no-overlapping
-    # - greedy(+ friendliness) vs k-means vs spectral clustering
-    # - Try for all the different kind of cm (cat, soft, soft_pred, soft_n_pred)
-    # - and compare on datasets
-    # - (in greedy_clustering, if classes not seen, should it be argmax or argmin ? )
-    # - When making predictions, do it on the whole test set not the cluster subset.
+    size = 10
+    cm = np.random.random((size, size))
+    greedy_pairs(cm, 3)
