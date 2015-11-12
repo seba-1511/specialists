@@ -63,10 +63,10 @@ if __name__ == '__main__':
     clustering_name = 'spectral'
     confusion_matrix_name = 'standard'
     failed = []
-    for confusion_matrix_name in ['standard', 'soft_sum', 'soft_sum_pred', 'soft_sum_not_pred']:
-        for clustering_name in ['kmeans', 'spectral', 'greedy_singles', 'greedy_pairs']:
-            # for num_clusters in xrange(2, 30, 2):
-            for num_clusters in xrange(2, 5, 1):
+    for confusion_matrix_name in ['soft_sum_pred', ]:
+        for clustering_name in ['greedy_singles', 'greedy_pairs']:
+            for num_clusters in xrange(2, 30, 4):
+            # for num_clusters in xrange(2, 5, 1):
                 try:
                     np.random.seed(rng_seed)
                     random.seed(rng_seed)

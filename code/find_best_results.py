@@ -26,13 +26,12 @@ parser = NeonArgparser(__doc__)
 args = parser.parse_args()
 
 
-def weighted_preds_merge(gene_preds, spec_preds, clusters, g_weight, s_weight):
-    preds = g_weight * gene_preds
+def weighted_preds_merge(gene_preds, spec_preds, final_preds, cluster, spec_weight):
+    preds = final_preds
     for i, pred in enumerate(preds):
         p = np.argmax(pred)
-        for j, c in enumerate(clusters):
-            if p in c:
-                preds[i] += s_weight * spec_preds[j][i]
+        if p in cluster:
+            preds[i] += spec_weight * spec_preds[i]
     return preds
 
 
@@ -59,9 +58,10 @@ if __name__ == '__main__':
     )
 
     # Main Loop:
-    clusterings = ['spectral', 'kmeans']
+    clusterings = ['spectral', 'kmeans', 'greedy_singles', 'greedy_pairs']
     cm_names = ['standard', 'soft_sum', 'soft_sum_pred', 'soft_sum_not_pred']
-    nb_clusters_list = range(2, 6, 1)
+    # nb_clusters_list = range(2, 5, 1)
+    nb_clusters_list = range(2, 30, 4)
     main_results = {}
     for clustering_name in clusterings:
         main_results[clustering_name] = {}
@@ -69,6 +69,8 @@ if __name__ == '__main__':
             main_results[clustering_name][confusion_matrix_name] = {}
             for num_clusters in nb_clusters_list:
                 try:
+                    np.random.seed(rng_seed)
+                    random.seed(rng_seed)
                     main_results[clustering_name][confusion_matrix_name][num_clusters] = {}
                     # Load and split datasets
                     (X_train, y_train), (X_test, y_test), nout = load_data(DATASET_NAME)
@@ -102,20 +104,35 @@ if __name__ == '__main__':
                     print 'Clusters: ', clusters
 
                     # Load each specialist
-                    specialists = []
-                    for c in range(num_clusters):
-                        path = EXPERIMENT_DIR + confusion_matrix_name + '_' + clustering_name + '_' + str(num_clusters) + 'clusters/' + 'specialist' + '_' + str(c) + '.prm'
+                    # specialists = []
+                    # for c in range(num_clusters):
+                        # path = EXPERIMENT_DIR + confusion_matrix_name + '_' + clustering_name + '_' + str(num_clusters) + 'clusters/' + 'specialist' + '_' + str(c) + '.prm'
+                        # s, opt, cost = spec_net(archive_path=path, nout=nout)
+                        # s.cost = cost
+                        # s.optimizer = opt
+                        # s.initialize(test_set, cost)
+                        # specialists.append(s)
+
+                    # # Merge all predictions together
+                    # final_targets = y_test
+                    # gene_preds = generalist.get_outputs(test_set)
+                    # spec_preds = [s.get_outputs(test_set) for s in specialists]
+                    # final_preds = weighted_preds_merge(gene_preds, spec_preds, clusters, 0.5, 0.5)
+
+                    # Testing
+                    final_targets = y_test
+                    gene_preds = generalist.get_outputs(test_set)
+                    final_preds = 0.0 * gene_preds
+                    for i, cluster in enumerate(clusters):
+                        path = EXPERIMENT_DIR + confusion_matrix_name + '_' + clustering_name + '_' + str(num_clusters) + 'clusters/' + 'specialist' + '_' + str(i) + '.prm'
                         s, opt, cost = spec_net(archive_path=path, nout=nout)
                         s.cost = cost
                         s.optimizer = opt
                         s.initialize(test_set, cost)
-                        specialists.append(s)
+                        spec_preds = s.get_outputs(test_set)
+                        final_preds = weighted_preds_merge(gene_preds, spec_preds, final_preds, cluster, 1.0)
 
-                    # Merge all predictions together
-                    final_targets = y_test
-                    gene_preds = generalist.get_outputs(test_set)
-                    spec_preds = [s.get_outputs(test_set) for s in specialists]
-                    final_preds = weighted_preds_merge(gene_preds, spec_preds, clusters, 0.5, 0.5)
+                    # End testing
 
                     nclasses = np.max(final_targets) + 1
                     gene_preds = gene_preds[:, :nclasses]
@@ -143,14 +160,14 @@ if __name__ == '__main__':
     # Ordered: (score, clustering, cm, nb_clusters)
     top_results = []
     table_results = {clustering: {
-        name: ('0.0', None) for name in cm_names
+        name: (0.0, None) for name in cm_names
     } for clustering in clusterings}
     for clustering in clusterings:
         for name in cm_names:
             for n_cluster in nb_clusters_list:
-                res = main_results[clustering][name][n_cluster]['accuracy']
-                if res >= table_results[clustering][name][0]:
-                    table_results[clustering][name] = (str.format('{0:.4f}', res), n_cluster)
+                res = round(main_results[clustering][name][n_cluster]['accuracy'], 4)
+                if res > table_results[clustering][name][0]:
+                    table_results[clustering][name] = (res, n_cluster)
                 top_results.append((str.format('{0:.4f}', res), clustering, name, n_cluster))
 
     # Nicely Printed:
@@ -159,7 +176,7 @@ if __name__ == '__main__':
     headers = [' ' * 20, ] + [clus.ljust(20, ' ') for clus in cm_names]
     print ' '.join(headers)
     for c in table_results.keys():
-        line = [str(b).ljust(20, ' ') for b in table_results[c].values()]
+        line = [str(table_results[c][b]).ljust(20, ' ') for b in cm_names]
         line = [c.ljust(20, ' '), ] + line
         print ' '.join(line)
     print ' '
