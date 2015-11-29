@@ -49,7 +49,7 @@ clustering algorithms on the confusion matrix of the outputs of the generalist.
 This confusion matrix is computed on a held-out partition of the dataset.
 Following previous works, we started by considering two baseline clustering
 algorithms, namely Lloyd's K-Means algorithm and
-Spectral clustering, according to the formulation of [Ng & al. (2002)]. In
+Spectral clustering, according to the formulation of Ng & al. (2002). In
 addition to those baseline algorithms, we evaluate the performance of two novel
 procedures specifically designed to improve the generalist-specialist paradigm.
 Those algorithms are described in the following paragraphs, and pseudo code is
@@ -98,7 +98,7 @@ cluster.
 
 # Experiments
 We investigate the performance of the aforementioned algorithms on the CIFAR-10
-and CIFAR-100 datasets [(Krizhevsky & al, 2009)]. Both datasets contain similar
+and CIFAR-100 datasets (Krizhevsky, 2009). Both datasets contain similar
 images, partitioned in 45'000 train, 5'000 validation, and 10'000 test images.
 They contain 10 and 100 classes respectively. For both experiments we train the
 generalist network on the train set only, and use the validation set for
@@ -106,17 +106,17 @@ clustering purposes. As we are interested in the clustering performance we did
 not augment nor pre-process the images. Note that when trained on the
 horizontally flipped training and validation set our baseline algorithm
 reaches 10.18% and 32.22% misclassification error, which is competitive with
-the current state-of-the-art presented in [Springenberg & al, 2015]. [^1]
+the current state-of-the-art presented in Springenberg & al. (2015). [^1]
 
 [^1]: The code for those experiments, is
 freely available online at [github.com/seba-1511/specialists](http://www.github.com/seba-1511/specialists).
 
-Following [Courbariaux & al, 2015], the baseline network is based on the
-conclusions of [Simonyan & al, 2015] and uses three pairs of batch-normalized
+Following Courbariaux & al (2015), the baseline network is based on the
+conclusions of Simonyan & al (2015) and uses three pairs of batch-normalized
 convolutional layers, each followed by a max-pooling layer, and two
 fully-connected layers. The same model is used for specialists, whose weights
 are initialized with the trained weights of the generalist. One major departure
-from the work of [Hinton dark knowledge] is that our specialists are predicting
+from the work of Hinton & al. (2014) is that our specialists are predicting
 over the same classes as the generalist, ie given a cluster we do not merge all
 classes outside of the cluster into a unique one. With regards to the
 generalist, the specialist is only biased towards a subset of the classes,
@@ -297,7 +297,7 @@ that many train examples has a drastic effect on both generalists and
 specialists. All the more so since we are not using any kind of data
 augmentation techniques, which could have moderated this downside. An obvious
 futur step is to validate the presented ideas on a much larger dataset such as
-Imagenet [IMAGENET citation] where splitting the train set would not hurt the
+Imagenet (Russakovsky & al. 2014) where splitting the train set would not hurt the
 train score as much.
 
 ### Acknowledgments
@@ -310,6 +310,10 @@ providing GPUs as well as their help with neon, their deep learning framework.
 Bochereau, Laurent, and Bourgine, Paul. A Generalist-Specialist Paradigm for
 Multilayer Neural Networks. Neural Networks, 1990.
 
+Courbariaux, Matthieu, Bengio, Yoshua, and David, Jean-Pierre. BinaryConnect:
+Training Deep Neural Networks with Binary Weights during Propagations. NIPS,
+2015.
+
 Dieleman, Sander, Willett, Kyle W., and Dambre, Joni. Rotation-invarient
 convolutional neural networks for galaxy morphology prediction. Oxford Journals,
 2015.
@@ -320,7 +324,7 @@ Andrew Y. Deep Speach: Scaling up end-to-end speech recognition. Arxiv Preprint,
 2014.
 
 Hinton, Geoffrey E., Vinyals, Oriol, and Dean, Jeff. Distilling th Knowledge in
-a Neural Network. NIPS 2014Deep Learning Workshop.
+a Neural Network. NIPS 2014 Deep Learning Workshop.
 
 Kahou, Samira Ebrahimi, Bouthiller, Xavier, Lamblin, Pascal, Gulcehre, Caglar,
 Michalski, Vincent, Konda, Kishore, Jean, Sébastien, Froumenty, Pierre, Dauphin,
@@ -329,9 +333,23 @@ Warde-Farley, David, Courville, Aaron, Vincent, Pascal, Memisevic, Roland, Pal,
 Christopher, and Bengio, Yoshua. EmoNets: Multimodal deep learning approaches
 for emation recofnition in video. Journal on Mutlimodal User Interfaces, 2015.
 
+Krizhevsky, Alex. Learning Multiple Layers of Features from Tiny Images. 2009.
+
+Ng, Andrew Y., Jordan, Micheal I., Weiss, Yair. On spectral clustering: Analysis
+and an algorithm. NIPS 2002.
+
+Russakovsky, Olga, Deng, Jia, Su, Hao, Krause, Jonathan, Satheesh, Sanjeev, Ma,
+Sean, huang, Zhiheng, Karpathy, Andrej, Khosla, Aditya, Bernstain, Michael,
+Berg, Alexander C., and Fei-Fei, Li. ImageNet Large Scale Visual Recognition
+Challenge. International Journal of Computer Vision, 2015.
+
 Simonyan, Karen and Zisserman, Andrew. Very Deep Convolutional Networks for
 Large-Scale Image Recognition. International Conference on Learning
 Representations, 2015.
+
+Springenberg, Jost Tobias, Dosovitskiy, Alexey, Brox, Thomas, and Riedmiller,
+Martin. Striving for Simplicity: The All Convolutional Net. International
+Conference on Learning Representations Workshop, 2015.
 
 Sutskever, Ilya, Vinyals, Oriol, and Le, Quoc V. Sequence to Sequence Learning with
 Neural Networks. Arxiv Preprint, 2014.
