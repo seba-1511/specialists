@@ -23,6 +23,8 @@ results on a wide range of different tasks such as image classification (Szegedy
 (Sutskever & al. 2014) Those ensembles are trained independently and in parallel, and different
 techniques can be used to merge their predictions.
 
+![An example of specialist architecture with three specialists](figs/specialists.png)
+
 An more structured alternative to ensembling is the use of the
 specialist-generalist framework. As described by Bochereau & Bourgine (1990), a
 natural analogy can be rises from the medical field; a patient first consults a
@@ -53,7 +55,7 @@ Spectral clustering, according to the formulation of Ng & al. (2002). In
 addition to those baseline algorithms, we evaluate the performance of two novel
 procedures specifically designed to improve the generalist-specialist paradigm.
 Those algorithms are described in the following paragraphs, and pseudo code is
-given in [Figures TODO].
+given in the Appendix.
 
 We also experiment with different was of building a confusion matrix. Besides
 the usual way (denoted here as _standard_) we tried three alternatives:
@@ -362,7 +364,25 @@ Warde-Farley, David, Rabinovich, Andrew, and  Anguelov, Dragomir. Self-Informed
 Neural Networks Structure Learning. International Conference on Representations
 Learning, 2015.
 
+# Appendix
 
+#### Greedy Pairs Pseudo Code
+
+1. Given a confusion matrix M and N desired clusters.
+2. $M \leftarrow M + M^T$
+3. Initialize N clusters with non-overlapping pairs maximizing the entries of M.
+4. Until each class has been assigned at least once:
+    * Get the next pair maximizing the entry in M
+    * Find which cluster minimizes the sum of animosity of both classes.
+    * Assign both classes to this cluster
+5. Return the clusters
+
+Note: A python implementation of both greedy pairs and greedy single can be found at [http://www.github.com/seba-1511/specialists](http://www.github.com/seba-1511/specialists).
+
+<!--
 # TODOs:
-TODO: Compile and show references
 TODO: Format ICLR style.
+TODO: Specialist Images
+TODO: Update with latest scores
+
+-->
