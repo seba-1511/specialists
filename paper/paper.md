@@ -1,5 +1,5 @@
-% Cluster Optimization for Specialist Networks 
-% Seb Arnold \break arnolds@usc.edu
+% A Greedy Algorithm to Cluster Specialists
+% Seb Arnold \break arnolds@usc.edu \break University of Southern California
 % \today
 
 \abstract
@@ -11,7 +11,9 @@ paper we perform such a study, suggest slight modifications to the clustering
 procedures, and propose a novel algorithm designed to optimize the performance of 
 of the specialist-generalist classification system. Our experiments on the
 CIFAR-10 and CIFAR-100 datasets allow us to investigate situations for varying
-number of classes on similar data.
+number of classes on similar data. We find that our *greedy_pairs* clustering
+algorithm consistently outperforms other alternatives, while the choice of the
+confusion matrix has little impact on the final performance.
 
 
 # Introduction
@@ -46,7 +48,7 @@ underlined one of the main advantages of using specialists; a relatively low
 (and parallelizable) additional computational cost for increased performance.
 
 # Clustering Algorithms
-In order to assign classes to the specialists networks, we compare several
+In order to assign classes to the specialist networks, we compare several
 clustering algorithms on the confusion matrix of the outputs of the generalist.
 This confusion matrix is computed on a held-out partition of the dataset.
 Following previous works, we started by considering two baseline clustering
@@ -57,14 +59,14 @@ procedures specifically designed to improve the generalist-specialist paradigm.
 Those algorithms are described in the following paragraphs, and pseudo code is
 given in the Appendix.
 
-We also experimented with different ways of building a confusion matrix. Besides
+We also experimented with different ways of building the confusion matrix. Besides
 the usual way (denoted here as _standard_) we tried three alternatives:
 
 *   _soft sum_: for each prediction, we  use the raw model output instead of
     the one-hot multi-class output,
 *   _soft sum pred_: just like *soft sum*, but only add the prediction output to the
     confusion matrix, if the class was correctly predicted,
-*   *soft sum not pred*: similarly to *soft sum pred*, but only if the
+*   *soft sum not pred*: like to *soft sum pred*, but only if the
     prediction output was incorrectly predicted.
 
 As discussed in later sections, the influence of the confusion matrix is
@@ -75,7 +77,7 @@ computing $CM = \textbf{A}^\top + \textbf{A}$, which symmetrizes the matrix. We
 define the entries of the matrix to be the *animosity score* between two
 classes; given classes *a* and *b*, their animosity score is found at $CM_{a,
 b}$. We then initialize each cluster with non-overlapping pairs of classes
-yielding maximal animosity score. We then greedily select the next classes to
+yielding maximal animosity score. Finally, we greedily select the next classes to
 be added to the clusters, according to the following rules:
 
 *   In the case of *greedy single* clustering, a single class maximizing the
@@ -86,8 +88,8 @@ be added to the clusters, according to the following rules:
 
 *   In the case of *greedy pairs* clustering, we follow the same strategy as in
     *greedy single* clustering but act on pair of classes instead of single
-    classes. In this case we allow the clusters to share elements, and thus
-    specialists can ahve overlapping jdugements.
+    classes. In this case we allow the clusters to overlap, and one prediction
+    might include the opinion of several specialists.
 
 This process is repeated until all classes have been assigned to at least one
 cluster.
@@ -99,16 +101,17 @@ cluster.
 <!--1 par: describe greedy singles and greedy pairs.-->
 
 # Experiments
-We investigate the performance of the aforementioned algorithms on the CIFAR-10
-and CIFAR-100 datasets (Krizhevsky, 2009). Both datasets contain similar
-images, partitioned in 45'000 train, 5'000 validation, and 10'000 test images.
-They contain 10 and 100 classes respectively. For both experiments we train the
-generalist network on the train set only, and use the validation set for
-clustering purposes. As we are interested in the clustering performance we did
-not augment nor pre-process the images. Note that when trained on the
-horizontally flipped training and validation set our baseline algorithm
-reaches 10.18% and 32.22% misclassification error, which is competitive with
-the current state-of-the-art presented in Springenberg & al. (2015). 
+We investigate the performance of the aforementioned algorithms
+on the CIFAR-10 and CIFAR-100 datasets (Krizhevsky, 2009). Both datasets
+contain similar images, partitioned in 45'000 train, 5'000 validation, and
+10'000 test images. They contain 10 and 100 classes respectively. For both
+experiments we train the generalist network on the train set only, and use the
+validation set for clustering purposes. As we are interested in the clustering
+performance we did not augment nor pre-process the images. Note that when
+trained on the horizontally flipped training and validation set our baseline
+algorithm reaches 10.18% and 32.22% misclassification error respectively, which
+is competitive with the current state-of-the-art presented in Springenberg & al
+(2015). 
 
 Following Courbariaux & al (2015), the baseline network is based on the
 conclusions of Simonyan & al (2015) and uses three pairs of batch-normalized
@@ -157,10 +160,10 @@ techniques (algorithmic ?) should be considered.-->
 
 Interestingly, the choice of confusion matrix has
 only a limited impact on the overall performance, indicating that the emphasis
-should be put on the the clustering algorithm. We notice that
-clustering with greedy pairs consistantly yields better scores. However none of
-the specialist experiments is able to improve on the baseline, indicating that
-specialists might not be as efficient when dealing with a small number of
+should be put on the clustering algorithm. We notice that
+clustering with greedy pairs consistently yields better scores. However none of
+the specialist experiments is able to improve on the baseline, suggesting that
+specialists might not be the framework of choice when dealing with a small number of
 classes.
 
 
@@ -200,9 +203,9 @@ Ordered best results:
 
 <!--TODO: Write this section with updated results.-->
 
-For CIFAR-100 we performed the exact same experiment as for CIFAR-10 but
-considered using more specialists, the largest experiments involving 28
-clusters. The results are shown in Table 2.
+For CIFAR-100 we performed the exact same experiment as for CIFAR-10 but used
+more specialists, the largest experiments involving 28 clusters. The results
+are shown in Table 2.
 
 Results        | standard    | soft sum    | soft sum pred | soft sum not pred   
 ---------------|-------------|-------------|---------------|------------------
@@ -229,11 +232,11 @@ some of the specialists are able to improve upon the generalist, which confirms
 our intuition that specialists are better suited to problems involving numerous
 output classes.
 
-Our explanation for the improved performance of greedy pairs is the following. Allowing
-clusters to overlap leads to the assignment of difficult classes
-to multiple specialists. At inference time, more networks will
-influence the final prediction which is analogous to building a larger ensemble
-for difficult classes.
+We suggest the following explanation for the improved performance of greedy
+pairs is the following. Allowing clusters to overlap leads to the assignment of
+difficult classes to multiple specialists. At inference time, more networks
+will influence the final prediction which is analogous to building a larger
+ensemble for difficult classes.
 
 <!--Results:
 
@@ -284,7 +287,7 @@ Add that normalizing would only help if the train distribution is different than
 -->
 
 We introduced a novel clustering algorithm for the specialist-generalist
-framework, which is able to consistantly outperform other techniques. We also
+framework, which is able to consistently outperform other techniques. We also
 provided a preliminary study of the different factors coming into
 play when dealing with specialists, and concluded that the choice of confusion
 matrix from our proposed set only has little impact on the final classification
@@ -295,7 +298,7 @@ specialists-based experiments came close to compete with the generalist model
 trained on the entire train and validation set. This was a surprising outcome
 and we suppose that this effect comes from the size of the datasets. In both
 cases, 5'000 images corresponds to 10% of the original training set and removing
-that many train examples has a drastic effect on both generalists and
+that many training examples has a drastic effect on both generalists and
 specialists. All the more so since we are not using any kind of data
 augmentation techniques, which could have moderated this downside. An obvious
 future step is to validate the presented ideas on a much larger dataset such as
@@ -305,28 +308,33 @@ train score as much.
 ### Acknowledgments
 We would like to thank Greg Ver Steeg, Gabriel Pereyra, and
 Oriol Vinyals for their comments and advices. We also thank Nervana Systems for
-providing GPUs as well as their help with neon, their deep learning framework.
+providing GPUs as well as their help with their deep learning framework.
 
 # References
 
 Bochereau, Laurent, and Bourgine, Paul. A Generalist-Specialist Paradigm for
 Multilayer Neural Networks. Neural Networks, 1990.
 
+
 Courbariaux, Matthieu, Bengio, Yoshua, and David, Jean-Pierre. BinaryConnect:
 Training Deep Neural Networks with Binary Weights during Propagations. NIPS,
 2015.
 
+
 Dieleman, Sander, Willett, Kyle W., and Dambre, Joni. Rotation-invarient
 convolutional neural networks for galaxy morphology prediction. Oxford Journals,
 2015.
+
 
 Hannun, Awni, Case, Carl, Casper, Jared, Catanzaro, Bryan, Diamos, Greg, Elsen,
 Erich, Prenger, Ryan, Satheesh, Sanjeev, Sengupta, Shubho, Coates, Adam, and Ng,
 Andrew Y. Deep Speach: Scaling up end-to-end speech recognition. Arxiv Preprint,
 2014.
 
+
 Hinton, Geoffrey E., Vinyals, Oriol, and Dean, Jeff. Distilling th Knowledge in
 a Neural Network. NIPS 2014 Deep Learning Workshop.
+
 
 Kahou, Samira Ebrahimi, Bouthiller, Xavier, Lamblin, Pascal, Gulcehre, Caglar,
 Michalski, Vincent, Konda, Kishore, Jean, Sébastien, Froumenty, Pierre, Dauphin,
@@ -335,30 +343,38 @@ Warde-Farley, David, Courville, Aaron, Vincent, Pascal, Memisevic, Roland, Pal,
 Christopher, and Bengio, Yoshua. EmoNets: Multimodal deep learning approaches
 for emation recofnition in video. Journal on Mutlimodal User Interfaces, 2015.
 
+
 Krizhevsky, Alex. Learning Multiple Layers of Features from Tiny Images. 2009.
+
 
 Ng, Andrew Y., Jordan, Micheal I., Weiss, Yair. On spectral clustering: Analysis
 and an algorithm. NIPS 2002.
+
 
 Russakovsky, Olga, Deng, Jia, Su, Hao, Krause, Jonathan, Satheesh, Sanjeev, Ma,
 Sean, huang, Zhiheng, Karpathy, Andrej, Khosla, Aditya, Bernstain, Michael,
 Berg, Alexander C., and Fei-Fei, Li. ImageNet Large Scale Visual Recognition
 Challenge. International Journal of Computer Vision, 2015.
 
+
 Simonyan, Karen and Zisserman, Andrew. Very Deep Convolutional Networks for
 Large-Scale Image Recognition. International Conference on Learning
 Representations, 2015.
+
 
 Springenberg, Jost Tobias, Dosovitskiy, Alexey, Brox, Thomas, and Riedmiller,
 Martin. Striving for Simplicity: The All Convolutional Net. International
 Conference on Learning Representations Workshop, 2015.
 
+
 Sutskever, Ilya, Vinyals, Oriol, and Le, Quoc V. Sequence to Sequence Learning with
 Neural Networks. Arxiv Preprint, 2014.
+
 
 Szegedy, Christian, Liu, Wei, Jia, Yangqing, Sermanet, Pierre, Reed, Scott,
 Anguelov, Dragomir, Erhan, Dumitru, Vanhoucke, Vincent, and Rabinovich, Andrew.
 Going deeper with convolutions. Arxiv Preprint, 2014.
+
 
 Warde-Farley, David, Rabinovich, Andrew, and  Anguelov, Dragomir. Self-Informed
 Neural Networks Structure Learning. International Conference on Representations
@@ -366,16 +382,24 @@ Learning, 2015.
 
 # Appendix
 
-#### Greedy Pairs Pseudo Code
+## Greedy Pairs Pseudo Code
 
-1. Given a confusion matrix M and N desired clusters.
-2. $M \leftarrow M + M^T$
-3. Initialize N clusters with non-overlapping pairs maximizing the entries of M.
-4. Until each class has been assigned at least once:
-    * Get the next pair maximizing the entry in M
-    * Find which cluster minimizes the sum of animosity of both classes.
-    * Assign both classes to this cluster
-5. Return the clusters
+\begin{algorithm}
+    \caption{Greedy Pairs Clustering}
+    \label{greedy_pairs}
+    \begin{algorithmic}[1] % The number tells where the line numbering should start
+        \Procedure{GreedyPairs}{$M,N$} \Comment{Confusion matrix M, number of clusters N}
+            \State $M\gets M \bmod M^T$
+            \State Initialize N clusters with non-overlapping pairs maximizing the entries of M.
+            \While{every class has not been assigned}
+                \State Get the next pair $(a, b)$ maximizing the entry in M
+                \State cluster = $\underset{\text{c in clusters}}{\mathrm{argmin}}$(Animosity(a, c) + Animosity(b, c))
+                \State Assign(cluster, a, b)
+            \EndWhile\label{euclidendwhile}
+            \State \textbf{return} clusters
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
 
 Note: A python implementation of both greedy pairs and greedy single can be found at [http://www.github.com/seba-1511/specialists](http://www.github.com/seba-1511/specialists).
 

@@ -1,5 +1,6 @@
-\author{Seb Arnold \break arnolds@usc.edu}
-\title{Cluster Optimization for Specialist Networks}
+\author{Seb Arnold \break arnolds@usc.edu \break University of Southern
+California}
+\title{A Greedy Algorithm to Cluster Specialists}
 \date{\today}
 \documentclass[12pt]{article}
 
@@ -43,7 +44,10 @@ such a study, suggest slight modifications to the clustering procedures,
 and propose a novel algorithm designed to optimize the performance of of
 the specialist-generalist classification system. Our experiments on the
 CIFAR-10 and CIFAR-100 datasets allow us to investigate situations for
-varying number of classes on similar data.
+varying number of classes on similar data. We find that our
+\emph{greedy\_pairs} clustering algorithm consistently outperforms other
+alternatives, while the choice of the confusion matrix has little impact
+on the final performance.
 
 \section{Introduction}\label{introduction}
 
@@ -87,7 +91,7 @@ parallelizable) additional computational cost for increased performance.
 
 \section{Clustering Algorithms}\label{clustering-algorithms}
 
-In order to assign classes to the specialists networks, we compare
+In order to assign classes to the specialist networks, we compare
 several clustering algorithms on the confusion matrix of the outputs of
 the generalist. This confusion matrix is computed on a held-out
 partition of the dataset. Following previous works, we started by
@@ -98,9 +102,9 @@ performance of two novel procedures specifically designed to improve the
 generalist-specialist paradigm. Those algorithms are described in the
 following paragraphs, and pseudo code is given in the Appendix.
 
-We also experimented with different ways of building a confusion matrix.
-Besides the usual way (denoted here as \emph{standard}) we tried three
-alternatives:
+We also experimented with different ways of building the confusion
+matrix. Besides the usual way (denoted here as \emph{standard}) we tried
+three alternatives:
 
 \begin{itemize}
 \itemsep1pt\parskip0pt\parsep0pt
@@ -112,8 +116,8 @@ alternatives:
   prediction output to the confusion matrix, if the class was correctly
   predicted,
 \item
-  \emph{soft sum not pred}: similarly to \emph{soft sum pred}, but only
-  if the prediction output was incorrectly predicted.
+  \emph{soft sum not pred}: like to \emph{soft sum pred}, but only if
+  the prediction output was incorrectly predicted.
 \end{itemize}
 
 As discussed in later sections, the influence of the confusion matrix is
@@ -125,8 +129,8 @@ the matrix. We define the entries of the matrix to be the
 \emph{animosity score} between two classes; given classes \emph{a} and
 \emph{b}, their animosity score is found at $CM_{a, b}$. We then
 initialize each cluster with non-overlapping pairs of classes yielding
-maximal animosity score. We then greedily select the next classes to be
-added to the clusters, according to the following rules:
+maximal animosity score. Finally, we greedily select the next classes to
+be added to the clusters, according to the following rules:
 
 \begin{itemize}
 \item
@@ -139,8 +143,8 @@ added to the clusters, according to the following rules:
   In the case of \emph{greedy pairs} clustering, we follow the same
   strategy as in \emph{greedy single} clustering but act on pair of
   classes instead of single classes. In this case we allow the clusters
-  to share elements, and thus specialists can ahve overlapping
-  jdugements.
+  to overlap, and one prediction might include the opinion of several
+  specialists.
 \end{itemize}
 
 This process is repeated until all classes have been assigned to at
@@ -157,8 +161,9 @@ only, and use the validation set for clustering purposes. As we are
 interested in the clustering performance we did not augment nor
 pre-process the images. Note that when trained on the horizontally
 flipped training and validation set our baseline algorithm reaches
-10.18\% and 32.22\% misclassification error, which is competitive with
-the current state-of-the-art presented in Springenberg \& al. (2015).
+10.18\% and 32.22\% misclassification error respectively, which is
+competitive with the current state-of-the-art presented in Springenberg
+\& al (2015).
 
 Following Courbariaux \& al (2015), the baseline network is based on the
 conclusions of Simonyan \& al (2015) and uses three pairs of
@@ -201,17 +206,17 @@ greedy pairs & (0.8584, 3) & (0.8483, 3) & (0.8473, 3) & (0.8611, 3)
 
 Interestingly, the choice of confusion matrix has only a limited impact
 on the overall performance, indicating that the emphasis should be put
-on the the clustering algorithm. We notice that clustering with greedy
-pairs consistantly yields better scores. However none of the specialist
-experiments is able to improve on the baseline, indicating that
-specialists might not be as efficient when dealing with a small number
-of classes.
+on the clustering algorithm. We notice that clustering with greedy pairs
+consistently yields better scores. However none of the specialist
+experiments is able to improve on the baseline, suggesting that
+specialists might not be the framework of choice when dealing with a
+small number of classes.
 
 \subsection{CIFAR-100}\label{cifar-100}
 
 For CIFAR-100 we performed the exact same experiment as for CIFAR-10 but
-considered using more specialists, the largest experiments involving 28
-clusters. The results are shown in Table 2.
+used more specialists, the largest experiments involving 28 clusters.
+The results are shown in Table 2.
 
 \begin{longtable}[c]{@{}lllll@{}}
 \toprule\addlinespace
@@ -240,16 +245,16 @@ improve upon the generalist, which confirms our intuition that
 specialists are better suited to problems involving numerous output
 classes.
 
-Our explanation for the improved performance of greedy pairs is the
-following. Allowing clusters to overlap leads to the assignment of
-difficult classes to multiple specialists. At inference time, more
-networks will influence the final prediction which is analogous to
-building a larger ensemble for difficult classes.
+We suggest the following explanation for the improved performance of
+greedy pairs is the following. Allowing clusters to overlap leads to the
+assignment of difficult classes to multiple specialists. At inference
+time, more networks will influence the final prediction which is
+analogous to building a larger ensemble for difficult classes.
 
 \section{Conclusion and Future Work}\label{conclusion-and-future-work}
 
 We introduced a novel clustering algorithm for the specialist-generalist
-framework, which is able to consistantly outperform other techniques. We
+framework, which is able to consistently outperform other techniques. We
 also provided a preliminary study of the different factors coming into
 play when dealing with specialists, and concluded that the choice of
 confusion matrix from our proposed set only has little impact on the
@@ -260,7 +265,7 @@ our specialists-based experiments came close to compete with the
 generalist model trained on the entire train and validation set. This
 was a surprising outcome and we suppose that this effect comes from the
 size of the datasets. In both cases, 5'000 images corresponds to 10\% of
-the original training set and removing that many train examples has a
+the original training set and removing that many training examples has a
 drastic effect on both generalists and specialists. All the more so
 since we are not using any kind of data augmentation techniques, which
 could have moderated this downside. An obvious future step is to
@@ -272,7 +277,7 @@ the train score as much.
 
 We would like to thank Greg Ver Steeg, Gabriel Pereyra, and Oriol
 Vinyals for their comments and advices. We also thank Nervana Systems
-for providing GPUs as well as their help with neon, their deep learning
+for providing GPUs as well as their help with their deep learning
 framework.
 
 \section{References}\label{references}
@@ -338,33 +343,24 @@ Conference on Representations Learning, 2015.
 
 \section{Appendix}\label{appendix}
 
-\paragraph{Greedy Pairs Pseudo Code}\label{greedy-pairs-pseudo-code}
+\subsection{Greedy Pairs Pseudo Code}\label{greedy-pairs-pseudo-code}
 
-\begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\itemsep1pt\parskip0pt\parsep0pt
-\item
-  Given a confusion matrix M and N desired clusters.
-\item
-  $M \leftarrow M + M^T$
-\item
-  Initialize N clusters with non-overlapping pairs maximizing the
-  entries of M.
-\item
-  Until each class has been assigned at least once:
-
-  \begin{itemize}
-  \itemsep1pt\parskip0pt\parsep0pt
-  \item
-    Get the next pair maximizing the entry in M
-  \item
-    Find which cluster minimizes the sum of animosity of both classes.
-  \item
-    Assign both classes to this cluster
-  \end{itemize}
-\item
-  Return the clusters
-\end{enumerate}
+\begin{algorithm}
+    \caption{Greedy Pairs Clustering}
+    \label{greedy_pairs}
+    \begin{algorithmic}[1] % The number tells where the line numbering should start
+        \Procedure{GreedyPairs}{$M,N$} \Comment{Confusion matrix M, number of clusters N}
+            \State $M\gets M \bmod M^T$
+            \State Initialize N clusters with non-overlapping pairs maximizing the entries of M.
+            \While{every class has not been assigned}
+                \State Get the next pair $(a, b)$ maximizing the entry in M
+                \State cluster = $\underset{\text{c in clusters}}{\mathrm{argmin}}$(Animosity(a, c) + Animosity(b, c))
+                \State Assign(cluster, a, b)
+            \EndWhile\label{euclidendwhile}
+            \State \textbf{return} clusters
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
 
 Note: A python implementation of both greedy pairs and greedy single can
 be found at \url{http://www.github.com/seba-1511/specialists}.
