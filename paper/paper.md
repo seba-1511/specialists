@@ -1,8 +1,8 @@
 % Cluster Optimization for Specialist Networks 
-% 10 November 2015 
-% Sébastien Arnold
+% Seb Arnold \break arnolds@usc.edu
+% \today
 
-# Abstract
+\abstract
 With the recent advances in deep neural networks, several experiments involved
 the generalist-specialist paradigm for classification. However, until now no
 formal study compared the
@@ -11,30 +11,30 @@ paper we perform such a study, suggest slight modifications to the clustering
 procedures, and propose a novel algorithm designed to optimize the performance of 
 of the specialist-generalist classification system. Our experiments on the
 CIFAR-10 and CIFAR-100 datasets allow us to investigate situations for varying
-number of classes similar similar data.
+number of classes on similar data.
 
 
 # Introduction
 Designing an efficient classification system using deep neural networks is a
-complicated one, which often use a multitude of models arranged in ensembles.
+complicated task, which often use a multitude of models arranged in ensembles.
 (Dieleman & al. 2015, Simonyan & Zisserman, 2015) Those ensembles often lead to state-of-the-art
 results on a wide range of different tasks such as image classification (Szegedy
 & al. 2014), speech recognition (Hannun & al. 2014), and machine translation.
-(Sutskever & al. 2014) Those ensembles are trained independently and in parallel, and different
+(Sutskever & al. 2014) The models are trained independently and in parallel, and different
 techniques can be used to merge their predictions.
 
-![An example of specialist architecture with three specialists](figs/specialists.png)
+![An example of specialist architecture with three specialists](./figs/specialists.png)
 
-An more structured alternative to ensembling is the use of the
+A more structured alternative to ensembling is the use of the
 specialist-generalist framework. As described by Bochereau & Bourgine (1990), a
-natural analogy can be rises from the medical field; a patient first consults a
-general practitioner which provides an initial diagnosis which is then refined
-by one or several specialists. In the case of classification, the practitioners
+natural analogy can be drawn from the medical field; a patient first consults a
+general practitioner who provides an initial diagnosis which is then refined
+by one or several specialists. In the case of classification, the doctors
 are replaced by neural networks and the final prediction is a combination of
-the specialists, and may or may not include the generalist's output.
+the specialists' outputs, and may or may not include the generalist's take.
 
 In recent years, generalist and specialists have been studied under
-different circumstances. In particular Hinton & al. (2014) used specialists
+different circumstances. Hinton & al. (2014) used specialists
 to create an efficient image classifier for a large private dataset. The final
 predictions of the specialists were then used to train a reduced classifier
 that achieved performance similar to the whole ensemble. Kahou & al. (2015)
@@ -57,7 +57,7 @@ procedures specifically designed to improve the generalist-specialist paradigm.
 Those algorithms are described in the following paragraphs, and pseudo code is
 given in the Appendix.
 
-We also experiment with different was of building a confusion matrix. Besides
+We also experimented with different ways of building a confusion matrix. Besides
 the usual way (denoted here as _standard_) we tried three alternatives:
 
 *   _soft sum_: for each prediction, we  use the raw model output instead of
@@ -84,7 +84,7 @@ be added to the clusters, according to the following rules:
     in clusters, building on the intuition that classes that are hard to
     distinguish should be put together.
 
-*   In the case of *greedy pair* clustering, we follow the same strategy as in
+*   In the case of *greedy pairs* clustering, we follow the same strategy as in
     *greedy single* clustering but act on pair of classes instead of single
     classes. In this case we allow the clusters to share elements, and thus
     specialists can ahve overlapping jdugements.
@@ -108,21 +108,21 @@ clustering purposes. As we are interested in the clustering performance we did
 not augment nor pre-process the images. Note that when trained on the
 horizontally flipped training and validation set our baseline algorithm
 reaches 10.18% and 32.22% misclassification error, which is competitive with
-the current state-of-the-art presented in Springenberg & al. (2015). [^1]
-
-[^1]: The code for those experiments, is
-freely available online at [github.com/seba-1511/specialists](http://www.github.com/seba-1511/specialists).
+the current state-of-the-art presented in Springenberg & al. (2015). 
 
 Following Courbariaux & al (2015), the baseline network is based on the
 conclusions of Simonyan & al (2015) and uses three pairs of batch-normalized
 convolutional layers, each followed by a max-pooling layer, and two
 fully-connected layers. The same model is used for specialists, whose weights
-are initialized with the trained weights of the generalist. One major departure
+are initialized with the trained weights of the generalist. [^1] One major departure
 from the work of Hinton & al. (2014) is that our specialists are predicting
-over the same classes as the generalist, ie given a cluster we do not merge all
+over the same classes as the generalist, i.e. we do not merge all
 classes outside of the cluster into a unique one. With regards to the
-generalist, the specialist is only biased towards a subset of the classes,
-since it has been fine-tuned to perform well on those ones. 
+generalist, a specialist is only biased towards a subset of the classes,
+since it has been fine-tuned to perform well on those ones.
+
+[^1]: The code for those experiments, is
+freely available online at [github.com/seba-1511/specialists](http://www.github.com/seba-1511/specialists).
 
 <!--Figure of Specialist-Generalist Framework.-->
 
@@ -156,10 +156,10 @@ Say that for small amount of classes, specialists seem useless, and other
 techniques (algorithmic ?) should be considered.-->
 
 Interestingly, the choice of confusion matrix has
-only a limited impact on the overall performance, indicating that the enphasis
-should be put on the choice of the clustering algorithm. We notice that
+only a limited impact on the overall performance, indicating that the emphasis
+should be put on the the clustering algorithm. We notice that
 clustering with greedy pairs consistantly yields better scores. However none of
-the spcialist experiments are able to improve on the baseline, indicating that
+the specialist experiments is able to improve on the baseline, indicating that
 specialists might not be as efficient when dealing with a small number of
 classes.
 
@@ -224,14 +224,14 @@ specialists.
 Similarly to CIFAR-10, we observe that greedy pairs clustering outperforms the
 other clustering techniques, and that the different types of confusion matrix
 have a limited influence on the final score. We also notice that fewer clusters
-work better than a lot of them. Finally and unlike the results for CIFAR-10,
+tend to work better. Finally, and unlike the results for CIFAR-10,
 some of the specialists are able to improve upon the generalist, which confirms
-our intuition that specialists work better when a large number of output classes
-is involved.
+our intuition that specialists are better suited to problems involving numerous
+output classes.
 
 Our explanation for the improved performance of greedy pairs is the following. Allowing
 clusters to overlap leads to the assignment of difficult classes
-to multiple specialists. At inference time, this means that more networks will
+to multiple specialists. At inference time, more networks will
 influence the final prediction which is analogous to building a larger ensemble
 for difficult classes.
 
@@ -271,7 +271,7 @@ Ordered best results:
 ('0.3906', 'kmeans', 'standard', 6)
 -->
 
-# Conclusion and Futur Work
+# Conclusion and Future Work
 <!--
 Larger dataset (as in Hinton Dark Knowledge and self informed or imagenet)
 would lead to better results, because we can afford to take images without
@@ -284,8 +284,8 @@ Add that normalizing would only help if the train distribution is different than
 -->
 
 We introduced a novel clustering algorithm for the specialist-generalist
-framework, which is able to consistantly outperform other techniques on the same
-task. We also provided a preliminary study of the different factors coming into
+framework, which is able to consistantly outperform other techniques. We also
+provided a preliminary study of the different factors coming into
 play when dealing with specialists, and concluded that the choice of confusion
 matrix from our proposed set only has little impact on the final classification
 outcome.
@@ -298,7 +298,7 @@ cases, 5'000 images corresponds to 10% of the original training set and removing
 that many train examples has a drastic effect on both generalists and
 specialists. All the more so since we are not using any kind of data
 augmentation techniques, which could have moderated this downside. An obvious
-futur step is to validate the presented ideas on a much larger dataset such as
+future step is to validate the presented ideas on a much larger dataset such as
 Imagenet (Russakovsky & al. 2014) where splitting the train set would not hurt the
 train score as much.
 
