@@ -1,0 +1,611 @@
+%%%%%%%%%%%%%%%%%%%% author.tex %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% sample root file for your "contribution" to a contributed volume
+%
+% Use this file as a template for your own input.
+%
+%%%%%%%%%%%%%%%% Springer %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% RECOMMENDED %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[graybox]{styles/svmult}
+
+% choose options for [] as required from the list
+% in the Reference Guide
+
+\usepackage{mathptmx}       % selects Times Roman as basic font
+\usepackage{helvet}         % selects Helvetica as sans-serif font
+\usepackage{courier}        % selects Courier as typewriter font
+\usepackage{type1cm}        % activate if the above 3 fonts are
+                            % not available on your system
+%
+\usepackage{makeidx}         % allows index generation
+\usepackage{graphicx}        % standard LaTeX graphics tool
+                             % when including figure files
+\usepackage{multicol}        % used for the two-column index
+\usepackage[bottom]{footmisc}% places footnotes at page bottom
+
+% CUSTOM SEB:
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage[noend]{algpseudocode}
+
+% see the list of further useful packages
+% in the Reference Guide
+
+\makeindex             % used for the subject index
+                       % please use the style svind.ist with
+                       % your makeindex program
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\title*{Greedily Assigning Classes to Neural Network Specialists}
+% Use \titlerunning{Short Title} for an abbreviated version of
+% your contribution title if the original one is too long
+\author{Sebastien Arnold}
+% Use \authorrunning{Short Title} for an abbreviated version of
+% your contribution title if the original one is too long
+\institute{Sebastien Arnold \at Department of Computer Science, University of Southern California, \email{arnolds@usc.edu}
+}
+%
+% Use the package "url.sty" to avoid
+% problems with special characters
+% used in your e-mail or web address
+%
+\maketitle
+
+\abstract*{
+With the recent advances in deep neural networks, several experiments
+involved the generalist-specialist paradigm for classification. However,
+until now no formal study compared the performance of different
+clustering algorithms for class assignment. In this paper we perform
+such a study, suggest slight modifications to the clustering procedures,
+and propose a novel algorithm designed to optimize the performance of of
+the specialist-generalist classification system. Our experiments on the
+CIFAR-10 and CIFAR-100 datasets allow us to investigate situations for
+varying number of classes on similar data. We find that our
+\emph{greedy\_pairs} clustering algorithm consistently outperforms other
+alternatives, while the choice of the confusion matrix has little impact
+on the final performance.
+}
+
+\abstract{
+With the recent advances in deep neural networks, several experiments
+involved the generalist-specialist paradigm for classification. However,
+until now no formal study compared the performance of different
+clustering algorithms for class assignment. In this paper we perform
+such a study, suggest slight modifications to the clustering procedures,
+and propose a novel algorithm designed to optimize the performance of of
+the specialist-generalist classification system. Our experiments on the
+CIFAR-10 and CIFAR-100 datasets allow us to investigate situations for
+varying number of classes on similar data. We find that our
+\emph{greedy\_pairs} clustering algorithm consistently outperforms other
+alternatives, while the choice of the confusion matrix has little impact
+on the final performance.
+}
+
+
+\section{Introduction}\label{introduction}
+
+Designing an efficient classification system using deep neural networks
+is a complicated task, which often use a multitude of models arranged in
+ensembles. (\cite{galaxy}, \cite{vgg}) Those ensembles often lead to
+state-of-the-art results on a wide range of different tasks such as
+image classification (\cite{inception}), speech recognition
+(\cite{deepspeech2}), and machine translation (\cite{seq2seq}). The
+models are trained independently and in parallel, and different
+techniques can be used to merge their predictions.
+
+\begin{figure}[b]
+\centering
+\includegraphics[width=\textwidth]{./figs/specialists.png}
+\caption{An example of specialist architecture with three specialists.}
+\label{fig:1}
+\end{figure}
+
+A more structured alternative to ensembling is the use of the
+specialist-generalist framework. As described by \cite{bochereau1990}, a
+natural analogy can be drawn from the medical field; a patient first
+consults a general practitioner who provides an initial diagnosis which
+is then refined by one or several specialists. In the case of
+classification, the doctors are replaced by neural networks and the
+final prediction is a combination of the specialists' outputs, and may
+or may not include the generalist's take.
+
+In recent years, generalist and specialists have been studied under
+different circumstances. \cite{darkknowledge} used specialists to create
+an efficient image classifier for a large private dataset. The final
+predictions of the specialists were then used to train a reduced
+classifier that achieved performance similar to the whole ensemble.
+\cite{emonets} describe a multimodal approach for emotion recognition in
+videos, based on specialists. Maybe closer to our work,
+\cite{wardefarley} added ``auxiliary heads'' (acting as specialists) to
+their baseline network, using the precomputed features for both
+classification and clustering. They also underlined one of the main
+advantages of using specialists; a relatively low (and parallelizable)
+additional computational cost for increased performance.
+
+\section{Clustering Algorithms}\label{clustering-algorithms}
+
+In order to assign classes to the specialist networks, we compare
+several clustering algorithms on the confusion matrix of the outputs of
+the generalist. This confusion matrix is computed on a held-out
+partition of the dataset. Following previous works, we started by
+considering two baseline clustering algorithms, namely Lloyd's K-Means
+algorithm and Spectral clustering, according to the formulation of
+\cite{spectral}. In addition to those baseline algorithms, we evaluate
+the performance of two novel procedures specifically designed to improve
+the generalist-specialist paradigm. Those algorithms are described in
+the following paragraphs, and pseudo code is given in the Appendix.
+
+We also experimented with different ways of building the confusion
+matrix. Besides the usual way (denoted here as \emph{standard}) we tried
+three alternatives:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  \emph{softsum}: for each prediction, we use the raw model output
+  instead of the one-hot multi-class output,
+\item
+  \emph{softsum pred}: just like \emph{softsum}, but only add the
+  prediction output to the confusion matrix, if the class was correctly
+  predicted,
+\item
+  \emph{softsum not pred}: like to \emph{softsum pred}, but only if
+  the prediction output was incorrectly predicted.
+\end{itemize}
+
+As discussed in later sections, the influence of the confusion matrix is
+minimal. Nonetheless we include them for completeness purposes.
+
+Both of our clustering algorithms further modify the confusion matrix
+$A$ by computing $CM = \textbf{A}^\top + \textbf{A}$, which symmetrizes
+the matrix. We define the entries of the matrix to be the
+\emph{animosity score} between two classes; given classes \emph{a} and
+\emph{b}, their animosity score is found at $CM_{a, b}$. We then
+initialize each cluster with non-overlapping pairs of classes yielding
+maximal animosity score. Finally, we greedily select the next classes to
+be added to the clusters, according to the following rules:
+
+\begin{itemize}
+\item
+  In the case of \emph{greedy single} clustering, a single class
+  maximizing the overall animosity score is added to the cluster
+  yielding the largest averaged sum of animosity towards this class.
+  This partitions the classes in clusters, building on the intuition
+  that classes that are hard to distinguish should be put together.
+\item
+  In the case of \emph{greedy pairs} clustering, we follow the same
+  strategy as in \emph{greedy single} clustering but act on pair of
+  classes instead of single classes. In this case we allow the clusters
+  to overlap, and one prediction might include the opinion of several
+  specialists.
+\end{itemize}
+
+This process is repeated until all classes have been assigned to at
+least one cluster.
+
+\section{Experiments}\label{experiments}
+
+We investigate the performance of the aforementioned algorithms on the
+CIFAR-10 and CIFAR-100 datasets (\cite{cifar}). Both datasets contain
+similar images, partitioned in 45'000 train, 5'000 validation, and
+10'000 test images. They contain 10 and 100 classes respectively. For
+both experiments we train the generalist network on the train set only,
+and use the validation set for clustering purposes. As we are interested
+in the clustering performance we did not augment nor pre-process the
+images. Note that when trained on the horizontally flipped training and
+validation set our baseline algorithm reaches 10.18\% and 32.22\%
+misclassification error respectively, which is competitive with the
+current state-of-the-art presented in \cite{allcnn}.
+
+Following \cite{binaryconnect}, the baseline network is based on the
+conclusions of \cite{vgg} and uses three pairs of batch-normalized
+convolutional layers, each followed by a max-pooling layer, and two
+fully-connected layers. The same model is used for specialists, whose
+weights are initialized with the trained weights of the generalist.
+\footnote{The code for these experiments, is freely available online at
+  \href{http://www.github.com/seba-1511/specialists}.}
+One major departure from the work of \cite{darkknowledge} is that our
+specialists are predicting over the same classes as the generalist,
+i.e.~we do not merge all classes outside of the cluster into a unique
+one. With regards to the generalist, a specialist is only biased towards
+a subset of the classes, since it has been fine-tuned to perform well on
+those ones.
+
+\subsection{CIFAR-10}\label{cifar-10}
+
+For CIFAR-10 experiments, we considered up to five clusters, and all of
+the possible combinations of confusion matrix and clustering algorithms.
+The results for this experiments are reported in Table 1.
+
+\begin{table}
+\caption{Experiment results for CIFAR-10}
+\label{tab:1}       % Give a unique label
+\begin{tabular}{p{3.2cm}p{2.0cm}p{2.0cm}p{2.0cm}p{2.0cm}}
+\hline\noalign{\smallskip}
+Clustering Algorithm & standard & softsum & softsum pred & softsum not pred \\
+\noalign{\smallskip}\svhline\noalign{\smallskip}
+spectral & (0.7046, 2) & (0.7719, 2) & (0.6989, 2) & (0.706, 2) \\
+greedy singles & (0.5873, 2) & (0.5049, 2) & (0.5139, 3) & (0.5873, 2) \\
+kmeans & (0.8202, 2) & (0.8202, 2) & (0.8202, 2) & (0.8202, 2) \\
+greedy pairs & (0.8835, 2) & (0.8835, 2) & (0.8727, 3) & (0.8835, 2) \\
+\noalign{\smallskip}\hline\noalign{\smallskip}
+\end{tabular}
+\end{table}
+
+Interestingly, the choice of confusion matrix has only a limited impact
+on the overall performance, indicating that the emphasis should be put
+on the clustering algorithm. We notice that clustering with greedy pairs
+consistently yields better scores. However none of the specialist
+experiments is able to improve on the baseline, suggesting that
+specialists might not be the framework of choice when dealing with a
+small number of classes.
+
+\subsection{CIFAR-100}\label{cifar-100}
+
+For CIFAR-100 we performed the exact same experiment as for CIFAR-10 but
+used more specialists, the largest experiments involving 28 clusters.
+The results are shown in Table 2.
+
+\begin{table}
+\caption{Experiment results for CIFAR-100}
+\label{tab:2}       % Give a unique label
+\begin{tabular}{p{3.2cm}p{2.0cm}p{2.0cm}p{2.0cm}p{2.0cm}}
+\hline\noalign{\smallskip}
+Clustering Algorithm & standard & softsum & softsum pred & softsum not pred \\
+\noalign{\smallskip}\svhline\noalign{\smallskip}
+spectral & (0.5828, 2) & (0.5713, 2) & (0.5755, 2) & (0.5795, 3) \\
+greedy singles & (0.3834, 2) & (0.3733, 2) & (0.3803, 2) & (0.3551, 2) \\
+kmeans & (0.5908, 2) & (0.5618, 2) & (0.5820, 3) & (0.5876, 2) \\
+greedy pairs & (0.6141, 6) & (0.5993, 6) & (0.6111, 6) & (0.607, 6) \\
+\noalign{\smallskip}\hline\noalign{\smallskip}
+\end{tabular}
+\end{table}
+
+Similarly to CIFAR-10, we observe that greedy pairs clustering
+outperforms the other clustering techniques, and that the different
+types of confusion matrix have a limited influence on the final score.
+We also notice that fewer clusters tend to work better. Finally, and
+unlike the results for CIFAR-10, some of the specialists are able to
+improve upon the generalist, which confirms our intuition that
+specialists are better suited to problems involving numerous output
+classes.
+
+We suggest the following explanation for the improved performance of
+greedy pairs is the following. Allowing clusters to overlap leads to the
+assignment of difficult classes to multiple specialists. At inference
+time, more networks will influence the final prediction which is
+analogous to building a larger ensemble for difficult classes.
+
+\section{Conclusion and Future Work}\label{conclusion-and-future-work}
+
+We introduced a novel clustering algorithm for the specialist-generalist
+framework, which is able to consistently outperform other techniques. We
+also provided a preliminary study of the different factors coming into
+play when dealing with specialists, and concluded that the choice of
+confusion matrix from our proposed set only has little impact on the
+final classification outcome.
+
+Despite our encouraging results with clustering techniques, no one of
+our specialists-based experiments came close to compete with the
+generalist model trained on the entire train and validation set. This
+was a surprising outcome and we suppose that this effect comes from the
+size of the datasets. In both cases, 5'000 images corresponds to 10\% of
+the original training set and removing that many training examples has a
+drastic effect on both generalists and specialists. All the more so
+since we are not using any kind of data augmentation techniques, which
+could have moderated this downside. An obvious future step is to
+validate the presented ideas on a much larger dataset such as
+\cite{imagenet} where splitting the train set would not hurt the train
+score as much.
+
+\acknowledgement
+
+We would like to thank Greg Ver Steeg, Gabriel Pereyra, and Pranav Rajpurkar for their comments and advices. We also thank Nervana Systems
+for providing GPUs as well as their help with their deep learning
+framework.
+
+\section{Appendix}\label{appendix}
+
+%\subsection{Greedy Pairs Pseudo Code}\label{greedy-pairs-pseudo-code}
+
+\begin{algorithm}
+    \caption{Greedy Pairs Clustering}
+    \label{greedy_pairs}
+    \begin{algorithmic}[1] % The number tells where the line numbering should start
+        \Procedure{GreedyPairs}{$M,N$} \Comment{Confusion matrix M, number of clusters N}
+            \State $M\gets M + M^T$
+            \State Initialize N clusters with non-overlapping pairs maximizing the entries of M.
+            \While{every class has not been assigned}
+                \State Get the next pair $(a, b)$ maximizing the entry in M
+                \State cluster = $\underset{\text{c in clusters}}{\mathrm{argmin}}$(Animosity(a, c) + Animosity(b, c))
+                \State Assign(cluster, a, b)
+            \EndWhile\label{euclidendwhile}
+            \State \textbf{return} clusters
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
+
+%Note: A python implementation of both greedy pairs and greedy single can
+%be found at \url{http://www.github.com/seba-1511/specialists}.
+
+\input{referenc}
+
+%\begin{thebibliography}
+%%\bibliographystyle{apalike}
+%\bibliographystyle{}
+
+%\bibliography{biblio}
+
+%\end{thebibliography}
+
+%\end{multicols}
+\end{document}
+
+%\section{Section Heading}
+%\label{sec:1}
+%Use the template \emph{chapter.tex} together with the Springer document class SVMono (monograph-type books) or SVMult (edited books) to style the various elements of your chapter content in the Springer layout.
+
+%Instead of simply listing headings of different levels we recommend to
+%let every heading be followed by at least a short passage of text.
+%Further on please use the \LaTeX\ automatism for all your
+%cross-references and citations. And please note that the first line of
+%text that follows a heading is not indented, whereas the first lines of
+%all subsequent paragraphs are.
+
+%\section{Section Heading}
+%\label{sec:2}
+%% Always give a unique label
+%% and use \ref{<label>} for cross-references
+%% and \cite{<label>} for bibliographic references
+%% use \sectionmark{}
+%% to alter or adjust the section heading in the running head
+%Instead of simply listing headings of different levels we recommend to
+%let every heading be followed by at least a short passage of text.
+%Further on please use the \LaTeX\ automatism for all your
+%cross-references and citations.
+
+%Please note that the first line of text that follows a heading is not indented, whereas the first lines of all subsequent paragraphs are.
+
+%Use the standard \verb|equation| environment to typeset your equations, e.g.
+%%
+%\begin{equation}
+%a \times b = c\;,
+%\end{equation}
+%%
+%however, for multiline equations we recommend to use the \verb|eqnarray| environment\footnote{In physics texts please activate the class option \texttt{vecphys} to depict your vectors in \textbf{\itshape boldface-italic} type - as is customary for a wide range of physical subjects}.
+%\begin{eqnarray}
+%a \times b = c \nonumber\\
+%\vec{a} \cdot \vec{b}=\vec{c}
+%\label{eq:01}
+%\end{eqnarray}
+
+%\subsection{Subsection Heading}
+%\label{subsec:2}
+%Instead of simply listing headings of different levels we recommend to
+%let every heading be followed by at least a short passage of text.
+%Further on please use the \LaTeX\ automatism for all your
+%cross-references\index{cross-references} and citations\index{citations}
+%as has already been described in Sect.~\ref{sec:2}.
+
+%\begin{quotation}
+%Please do not use quotation marks when quoting texts! Simply use the \verb|quotation| environment -- it will automatically render Springer's preferred layout.
+%\end{quotation}
+
+
+%\subsubsection{Subsubsection Heading}
+%Instead of simply listing headings of different levels we recommend to
+%let every heading be followed by at least a short passage of text.
+%Further on please use the \LaTeX\ automatism for all your
+%cross-references and citations as has already been described in
+%Sect.~\ref{subsec:2}, see also Fig.~\ref{fig:1}\footnote{If you copy
+%text passages, figures, or tables from other works, you must obtain
+%\textit{permission} from the copyright holder (usually the original
+%publisher). Please enclose the signed permission with the manuscript. The
+%sources\index{permission to print} must be acknowledged either in the
+%captions, as footnotes or in a separate section of the book.}
+
+%Please note that the first line of text that follows a heading is not indented, whereas the first lines of all subsequent paragraphs are.
+
+%% For figures use
+%%
+%%\begin{figure}[b]
+%%\sidecaption
+%%% Use the relevant command for your figure-insertion program
+%%% to insert the figure file.
+%%% For example, with the graphicx style use
+%%\includegraphics[scale=.65]{figure}
+%%%
+%%% If no graphics program available, insert a blank space i.e. use
+%%%\picplace{5cm}{2cm} % Give the correct figure height and width in cm
+%%%
+%%\caption{If the width of the figure is less than 7.8 cm use the \texttt{sidecapion} command to flush the caption on the left side of the page. If the figure is positioned at the top of the page, align the sidecaption with the top of the figure -- to achieve this you simply need to use the optional argument \texttt{[t]} with the \texttt{sidecaption} command}
+%%\label{fig:1}       % Give a unique label
+%%\end{figure}
+
+%\begin{figure}[htbp]
+%\label{fig:1}       % Give a unique label
+%\centering
+%\includegraphics{./figs/specialists.png}
+%\caption{An example of specialist architecture with three specialists}
+%\end{figure}
+
+%\paragraph{Paragraph Heading} %
+%Instead of simply listing headings of different levels we recommend to
+%let every heading be followed by at least a short passage of text.
+%Further on please use the \LaTeX\ automatism for all your
+%cross-references and citations as has already been described in
+%Sect.~\ref{sec:2}.
+
+%Please note that the first line of text that follows a heading is not indented, whereas the first lines of all subsequent paragraphs are.
+
+%For typesetting numbered lists we recommend to use the \verb|enumerate| environment -- it will automatically render Springer's preferred layout.
+
+%\begin{enumerate}
+%\item{Livelihood and survival mobility are oftentimes coutcomes of uneven socioeconomic development.}
+%\begin{enumerate}
+%\item{Livelihood and survival mobility are oftentimes coutcomes of uneven socioeconomic development.}
+%\item{Livelihood and survival mobility are oftentimes coutcomes of uneven socioeconomic development.}
+%\end{enumerate}
+%\item{Livelihood and survival mobility are oftentimes coutcomes of uneven socioeconomic development.}
+%\end{enumerate}
+
+
+%\subparagraph{Subparagraph Heading} In order to avoid simply listing headings of different levels we recommend to let every heading be followed by at least a short passage of text. Use the \LaTeX\ automatism for all your cross-references and citations as has already been described in Sect.~\ref{sec:2}, see also Fig.~\ref{fig:2}.
+
+%For unnumbered list we recommend to use the \verb|itemize| environment -- it will automatically render Springer's preferred layout.
+
+%\begin{itemize}
+%\item{Livelihood and survival mobility are oftentimes coutcomes of uneven socioeconomic development, cf. Table~\ref{tab:1}.}
+%\begin{itemize}
+%\item{Livelihood and survival mobility are oftentimes coutcomes of uneven socioeconomic development.}
+%\item{Livelihood and survival mobility are oftentimes coutcomes of uneven socioeconomic development.}
+%\end{itemize}
+%\item{Livelihood and survival mobility are oftentimes coutcomes of uneven socioeconomic development.}
+%\end{itemize}
+
+%%\begin{figure}[t]
+%%\sidecaption[t]
+%%% Use the relevant command for your figure-insertion program
+%%% to insert the figure file.
+%%% For example, with the option graphics use
+%%\includegraphics[scale=.65]{figure}
+%%%
+%%% If no graphics program available, insert a blank space i.e. use
+%%%\picplace{5cm}{2cm} % Give the correct figure height and width in cm
+%%%
+%%%\caption{Please write your figure caption here}
+%%\caption{If the width of the figure is less than 7.8 cm use the \texttt{sidecapion} command to flush the caption on the left side of the page. If the figure is positioned at the top of the page, align the sidecaption with the top of the figure -- to achieve this you simply need to use the optional argument \texttt{[t]} with the \texttt{sidecaption} command}
+%%\label{fig:2}       % Give a unique label
+%%\end{figure}
+
+%\runinhead{Run-in Heading Boldface Version} Use the \LaTeX\ automatism for all your cross-references and citations as has already been described in Sect.~\ref{sec:2}.
+
+%\subruninhead{Run-in Heading Italic Version} Use the \LaTeX\ automatism for all your cross-refer\-ences and citations as has already been described in Sect.~\ref{sec:2}\index{paragraph}.
+%% Use the \index{} command to code your index words
+%%
+%% For tables use
+%%
+%\begin{table}
+%\caption{Please write your table caption here}
+%\label{tab:1}       % Give a unique label
+%%
+%% Follow this input for your own table layout
+%%
+%\begin{tabular}{p{2cm}p{2.4cm}p{2cm}p{4.9cm}}
+%\hline\noalign{\smallskip}
+%Classes & Subclass & Length & Action Mechanism  \\
+%\noalign{\smallskip}\svhline\noalign{\smallskip}
+%Translation & mRNA$^a$  & 22 (19--25) & Translation repression, mRNA cleavage\\
+%Translation & mRNA cleavage & 21 & mRNA cleavage\\
+%Translation & mRNA  & 21--22 & mRNA cleavage\\
+%Translation & mRNA  & 24--26 & Histone and DNA Modification\\
+%\noalign{\smallskip}\hline\noalign{\smallskip}
+%\end{tabular}
+%$^a$ Table foot note (with superscript)
+%\end{table}
+%%
+%\section{Section Heading}
+%\label{sec:3}
+%% Always give a unique label
+%% and use \ref{<label>} for cross-references
+%% and \cite{<label>} for bibliographic references
+%% use \sectionmark{}
+%% to alter or adjust the section heading in the running head
+%Instead of simply listing headings of different levels we recommend to
+%let every heading be followed by at least a short passage of text.
+%Further on please use the \LaTeX\ automatism for all your
+%cross-references and citations as has already been described in
+%Sect.~\ref{sec:2}.
+
+%Please note that the first line of text that follows a heading is not indented, whereas the first lines of all subsequent paragraphs are.
+
+%If you want to list definitions or the like we recommend to use the Springer-enhanced \verb|description| environment -- it will automatically render Springer's preferred layout.
+
+%\begin{description}[Type 1]
+%\item[Type 1]{That addresses central themes pertainng to migration, health, and disease. In Sect.~\ref{sec:1}, Wilson discusses the role of human migration in infectious disease distributions and patterns.}
+%\item[Type 2]{That addresses central themes pertainng to migration, health, and disease. In Sect.~\ref{subsec:2}, Wilson discusses the role of human migration in infectious disease distributions and patterns.}
+%\end{description}
+
+%\subsection{Subsection Heading} %
+%In order to avoid simply listing headings of different levels we recommend to let every heading be followed by at least a short passage of text. Use the \LaTeX\ automatism for all your cross-references and citations citations as has already been described in Sect.~\ref{sec:2}.
+
+%Please note that the first line of text that follows a heading is not indented, whereas the first lines of all subsequent paragraphs are.
+
+%\begin{svgraybox}
+%If you want to emphasize complete paragraphs of texts we recommend to use the newly defined Springer class option \verb|graybox| and the newly defined environment \verb|svgraybox|. This will produce a 15 percent screened box 'behind' your text.
+
+%If you want to emphasize complete paragraphs of texts we recommend to use the newly defined Springer class option and environment \verb|svgraybox|. This will produce a 15 percent screened box 'behind' your text.
+%\end{svgraybox}
+
+
+%\subsubsection{Subsubsection Heading}
+%Instead of simply listing headings of different levels we recommend to
+%let every heading be followed by at least a short passage of text.
+%Further on please use the \LaTeX\ automatism for all your
+%cross-references and citations as has already been described in
+%Sect.~\ref{sec:2}.
+
+%Please note that the first line of text that follows a heading is not indented, whereas the first lines of all subsequent paragraphs are.
+
+%\begin{theorem}
+%Theorem text goes here.
+%\end{theorem}
+%%
+%% or
+%%
+%\begin{definition}
+%Definition text goes here.
+%\end{definition}
+
+%\begin{proof}
+%%\smartqed
+%Proof text goes here.
+%\qed
+%\end{proof}
+
+%\paragraph{Paragraph Heading} %
+%Instead of simply listing headings of different levels we recommend to
+%let every heading be followed by at least a short passage of text.
+%Further on please use the \LaTeX\ automatism for all your
+%cross-references and citations as has already been described in
+%Sect.~\ref{sec:2}.
+
+%Note that the first line of text that follows a heading is not indented, whereas the first lines of all subsequent paragraphs are.
+%%
+%% For built-in environments use
+%%
+%\begin{theorem}
+%Theorem text goes here.
+%\end{theorem}
+%%
+%\begin{definition}
+%Definition text goes here.
+%\end{definition}
+%%
+%\begin{proof}
+%\smartqed
+%Proof text goes here.
+%\qed
+%\end{proof}
+%%
+%\begin{acknowledgement}
+%If you want to include acknowledgments of assistance and the like at the end of an individual chapter please use the \verb|acknowledgement| environment -- it will automatically render Springer's preferred layout.
+%\end{acknowledgement}
+%%
+%\section*{Appendix}
+%\addcontentsline{toc}{section}{Appendix}
+%%
+%%
+%When placed at the end of a chapter or contribution (as opposed to at the end of the book), the numbering of tables, figures, and equations in the appendix section continues on from that in the main text. Hence please \textit{do not} use the \verb|appendix| command when writing an appendix at the end of your chapter or contribution. If there is only one the appendix is designated ``Appendix'', or ``Appendix 1'', or ``Appendix 2'', etc. if there is more than one.
+
+%\begin{equation}
+%a \times b = c
+%\end{equation}
+
+%\input{referenc}
+%\end{document}
