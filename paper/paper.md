@@ -143,12 +143,12 @@ For CIFAR-10 experiments, we considered up to five clusters, and all of the
 possible combinations of confusion matrix and clustering algorithms. The results
 for this experiments are reported in Table 1.
 
-Results        | standard    | soft sum    | soft sum pred | soft sum not pred   
----------------|-------------|-------------|---------------|------------------
-spectral       | (0.7342, 2) | (0.4117, 3) | (0.4541, 4)   | (0.4143, 2)           
-greedy singles | (0.2787, 3) | (0.2774, 2) | (0.3869, 4)   | (0.2727, 2)           
-kmeans         | (0.8037, 2) | (0.8037, 2) | (0.8034, 2)   | (0.804, 2)            
-greedy pairs   | (0.8584, 3) | (0.8483, 3) | (0.8473, 3)   | (0.8611, 3)           
+Results          | standard           | soft sum            | soft sum pred         | soft sum not pred
+---------------- | ------------------ | ------------------- | --------------------- | -------------------
+spectral         | (0.7046, 2)        | (0.7719, 2)         | (0.6989, 2)           | (0.706, 2)
+greedy singles   | (0.5873, 2)        | (0.5049, 2)         | (0.5139, 3)           | (0.5873, 2)
+kmeans           | (0.8202, 2)        | (0.8202, 2)         | (0.8202, 2)           | (0.8202, 2)
+greedy pairs     | (0.8835, 2)        | (0.8835, 2)         | (0.8727, 3)           | (0.8835, 2)
 
 : Experiment results for CIFAR-10
 
@@ -168,6 +168,8 @@ classes.
 
  
 <!--Results:
+
+OLD RESULTS:
 
 FINAL RESULTS: 
                      standard             soft_sum             soft_sum_pred        soft_sum_not_pred   
@@ -196,6 +198,65 @@ Ordered best results:
 ('0.7342', 'spectral', 'standard', 2)
 ('0.7257', 'kmeans', 'soft_sum', 3)
 ('0.5666', 'kmeans', 'standard', 3)
+
+
+NEW RESULTS:
+FINAL RESULTS:  cifar10
+                     standard             soft_sum             soft_sum_pred        soft_sum_not_pred   
+spectral             (0.7046, 2)          (0.7719, 2)          (0.6989, 2)          (0.706, 2)          
+greedy_singles       (0.5873, 2)          (0.5049, 2)          (0.5139, 3)          (0.5873, 2)         
+kmeans               (0.8202, 2)          (0.8202, 2)          (0.8202, 2)          (0.8202, 2)         
+greedy_pairs         (0.8835, 2)          (0.8835, 2)          (0.8727, 3)          (0.8835, 2)         
+ 
+Ordered best results: 
+('0.8835', 'greedy_pairs', 'soft_sum_not_pred', 2)
+('0.8835', 'greedy_pairs', 'soft_sum', 2)
+('0.8835', 'greedy_pairs', 'standard', 2)
+('0.8727', 'greedy_pairs', 'soft_sum_pred', 3)
+('0.8677', 'greedy_pairs', 'soft_sum', 4)
+('0.8638', 'greedy_pairs', 'soft_sum_not_pred', 3)
+('0.8638', 'greedy_pairs', 'soft_sum', 3)
+('0.8638', 'greedy_pairs', 'standard', 3)
+('0.8629', 'greedy_pairs', 'soft_sum_pred', 2)
+('0.8568', 'greedy_pairs', 'soft_sum_not_pred', 4)
+('0.8202', 'kmeans', 'soft_sum_not_pred', 2)
+('0.8202', 'kmeans', 'soft_sum_pred', 2)
+('0.8202', 'kmeans', 'soft_sum', 2)
+('0.8202', 'kmeans', 'standard', 2)
+('0.7981', 'greedy_pairs', 'standard', 4)
+('0.7719', 'greedy_pairs', 'soft_sum_pred', 4)
+('0.7719', 'spectral', 'soft_sum', 2)
+('0.7445', 'kmeans', 'standard', 3)
+('0.7060', 'spectral', 'soft_sum_not_pred', 2)
+('0.7046', 'spectral', 'standard', 2)
+('0.7026', 'kmeans', 'standard', 4)
+('0.6989', 'spectral', 'soft_sum_pred', 2)
+('0.5980', 'kmeans', 'soft_sum_not_pred', 3)
+('0.5873', 'greedy_singles', 'soft_sum_not_pred', 2)
+('0.5873', 'greedy_singles', 'standard', 2)
+('0.5139', 'greedy_singles', 'soft_sum_pred', 3)
+('0.5049', 'greedy_singles', 'soft_sum', 2)
+('0.4184', 'spectral', 'soft_sum', 3)
+('0.4087', 'greedy_singles', 'soft_sum_pred', 2)
+('0.3882', 'greedy_singles', 'soft_sum_pred', 4)
+('0.3184', 'kmeans', 'soft_sum', 3)
+('0.2095', 'spectral', 'soft_sum_pred', 3)
+('0.2036', 'greedy_singles', 'soft_sum_not_pred', 3)
+('0.2036', 'greedy_singles', 'soft_sum', 3)
+('0.2036', 'greedy_singles', 'standard', 3)
+('0.1968', 'greedy_singles', 'soft_sum_not_pred', 4)
+('0.1968', 'greedy_singles', 'soft_sum', 4)
+('0.1968', 'greedy_singles', 'standard', 4)
+('0.1965', 'spectral', 'soft_sum_pred', 4)
+('0.1252', 'kmeans', 'soft_sum_pred', 3)
+('0.1000', 'kmeans', 'soft_sum_not_pred', 4)
+('0.1000', 'kmeans', 'soft_sum_pred', 4)
+('0.1000', 'kmeans', 'soft_sum', 4)
+('0.1000', 'spectral', 'standard', 3)
+('0.0000', 'spectral', 'soft_sum_not_pred', 4)
+('0.0000', 'spectral', 'soft_sum_not_pred', 3)
+('0.0000', 'spectral', 'soft_sum', 4)
+('0.0000', 'spectral', 'standard', 4)
 -->
 
 ## CIFAR-100
